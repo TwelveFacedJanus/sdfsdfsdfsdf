@@ -16,40 +16,36 @@ services:
     networks:
       - ezoterika_network
 
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: ezoterika_pgadmin
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@ezoterika.com
-      PGADMIN_DEFAULT_PASSWORD: admin_password
+  backend:
+    build: ./Backend
+    container_name: ezoterika_backend
     ports:
-      - "8080:80"
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
+      - "8000:8000"
+    #volumes:
+    #  - ./Backend:/app
     restart: unless-stopped
     depends_on:
       - postgres
     networks:
       - ezoterika_network
+    environment:
+      - DEBUG=1
 
-  #backend:
-  #  build: ./Backend
-  #  container_name: ezoterika_backend
-  #  ports:
-  #    - "8000:8000"
-  #  volumes:
-  #    - ./Backend:/app
-  #  restart: unless-stopped
-  #  depends_on:
-  #    - postgres
-  #  networks:
-  #    - ezoterika_network
-  #  environment:
-  #    - DEBUG=1
+  frontend:
+    build: ./Frontend/ezoterika
+    container_name: ezoterika_frontend
+    ports:
+      - "3000:3000"
+    #volumes:
+    #  - ./Frontend/ezoterika:/app
+    restart: unless-stopped
+    networks:
+      - ezoterika_network
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:
-  pgadmin_data:
 
 networks:
   ezoterika_network:

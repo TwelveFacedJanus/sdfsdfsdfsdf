@@ -13,16 +13,12 @@ RUN apt-get update \
         postgresql-client \
         build-essential \
         libpq-dev \
+        netcat-openbsd \
     && rm -rf /var/lib/apt/lists/*
 
-# Install PDM
-RUN pip install pdm
-
-# Copy PDM files
-COPY pyproject.toml pdm.lock ./
-
-# Install dependencies
-RUN pdm install --prod --no-lock
+# Copy requirements and install dependencies
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy project
 COPY . .
@@ -30,5 +26,10 @@ COPY . .
 # Expose port
 EXPOSE 8000
 
+# Copy and set permissions for startup script
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
 # Run the application
-CMD ["pdm", "run", "python", "manage.py", "runserver", "0.0.0.0:8000"]
+WORKDIR /app
+CMD ["/app/start.sh"]

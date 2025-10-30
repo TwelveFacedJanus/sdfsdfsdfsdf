@@ -86,7 +86,7 @@ DATABASES = {
         'NAME': 'ezoterika_db',
         'USER': 'ezoterika_user',
         'PASSWORD': 'ezoterika_password',
-        'HOST': 'localhost',
+        'HOST': 'postgres',
         'PORT': '5432',
     }
 }
@@ -209,4 +209,7 @@ CORS_ALLOW_HEADERS = [
 ]
 
 # Настройки для разработки
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.0.114']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.0.114', 'backend']
+
+# Disable APPEND_SLASH to allow URLs without trailing slashes for API calls
+APPEND_SLASH = False

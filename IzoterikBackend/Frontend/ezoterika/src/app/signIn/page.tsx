@@ -170,7 +170,7 @@ export default function SignInPage() {
           {/* Ссылки */}
           <div className="flex flex-col sm:flex-row justify-between gap-2 sm:gap-0 text-xs sm:text-sm">
             <a 
-              href="/signup" 
+              href="/signUp" 
               className="text-white hover:text-gray-300 transition-colors text-center sm:text-left"
             >
               Еще нет аккаунта?
