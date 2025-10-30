@@ -1,0 +1,1158 @@
+{
+	"info": {
+		"_postman_id": "ezoterika-api-collection",
+		"name": "Ezoterika API",
+		"description": "API collection for Ezoterika project with user authentication and profile management",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "User Registration",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fio\": \"Иванов Иван Иванович\",\n    \"email\": \"user@example.com\",\n    \"password\": \"secure_password\",\n    \"password_confirm\": \"secure_password\",\n    \"nickname\": \"ivan_user\",\n    \"date_of_birth\": \"1990-01-15\",\n    \"country\": \"Россия\",\n    \"language\": \"ru\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/user/sign-up/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"sign-up",
+								""
+							]
+						},
+						"description": "Register a new user with optional fields"
+					},
+					"response": []
+				},
+				{
+					"name": "User Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"secure_password\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/user/sign-in/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"sign-in",
+								""
+							]
+						},
+						"description": "Login user and get JWT tokens"
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refresh\": \"{{refresh_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/user/token/refresh/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"token",
+								"refresh",
+								""
+							]
+						},
+						"description": "Refresh access token using refresh token"
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refresh\": \"{{refresh_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/user/logout/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"logout",
+								""
+							]
+						},
+						"description": "Logout user and blacklist refresh token"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints for user registration, login, token refresh, and logout"
+		},
+		{
+			"name": "User Profile",
+			"item": [
+				{
+					"name": "Update Profile",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fio\": \"Петров Петр Петрович\",\n    \"nickname\": \"petrov_user\",\n    \"country\": \"Украина\",\n    \"language\": \"uk\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/user/profile/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"profile",
+								""
+							]
+						},
+						"description": "Update user profile information (requires authentication)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Profile - Partial (FIO only)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fio\": \"Сидоров Сидор Сидорович\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/user/profile/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"profile",
+								""
+							]
+						},
+						"description": "Update only FIO field"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Profile - Date of Birth",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"date_of_birth\": \"1985-03-15\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/user/profile/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"profile",
+								""
+							]
+						},
+						"description": "Update date of birth"
+					},
+					"response": []
+				}
+			],
+			"description": "User profile management endpoints"
+		},
+		{
+			"name": "User Story",
+			"item": [
+				{
+					"name": "Get User Stories",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/user-story/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user-story",
+								""
+							]
+						},
+						"description": "Get all user stories for authenticated user"
+					},
+					"response": []
+				},
+				{
+					"name": "Create User Story - Subscription",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"content\": \"Активировал абонемент на 1 месяц\",\n    \"category\": \"subscription\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/user-story/create/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user-story",
+								"create",
+								""
+							]
+						},
+						"description": "Create subscription story"
+					},
+					"response": []
+				},
+				{
+					"name": "Create User Story - Donation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"content\": \"Пожертвование автору 500 рублей\",\n    \"category\": \"donation\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/user-story/create/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user-story",
+								"create",
+								""
+							]
+						},
+						"description": "Create donation story"
+					},
+					"response": []
+				},
+				{
+					"name": "Create User Story - Profile",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"content\": \"Обновил информацию в профиле\",\n    \"category\": \"profile\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/user-story/create/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user-story",
+								"create",
+								""
+							]
+						},
+						"description": "Create profile update story"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Stories by Category",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/user-story/category/subscription/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user-story",
+								"category",
+								"subscription",
+								""
+							]
+						},
+						"description": "Get stories filtered by category (subscription, donation, profile, rating, other)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Story Detail",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/user-story/{{story_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user-story",
+								"{{story_id}}",
+								""
+							]
+						},
+						"description": "Get specific story details by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Story",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/user-story/{{story_id}}/delete/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user-story",
+								"{{story_id}}",
+								"delete",
+								""
+							]
+						},
+						"description": "Delete a specific story by ID"
+					},
+					"response": []
+				}
+			],
+			"description": "User story management endpoints for tracking user actions"
+		},
+		{
+			"name": "User Favourites",
+			"item": [
+				{
+					"name": "Get User Subscriptions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/user-favourites/subscriptions/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user-favourites",
+								"subscriptions",
+								""
+							]
+						},
+						"description": "Get all users that current user is subscribed to"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Subscribers",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/user-favourites/subscribers/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user-favourites",
+								"subscribers",
+								""
+							]
+						},
+						"description": "Get all users who are subscribed to current user"
+					},
+					"response": []
+				},
+				{
+					"name": "Subscribe to User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"subscribed_to\": \"{{user_id}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/user-favourites/subscribe/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user-favourites",
+								"subscribe",
+								""
+							]
+						},
+						"description": "Subscribe to another user"
+					},
+					"response": []
+				},
+				{
+					"name": "Unsubscribe from User",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/user-favourites/unsubscribe/{{user_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user-favourites",
+								"unsubscribe",
+								"{{user_id}}",
+								""
+							]
+						},
+						"description": "Unsubscribe from a user"
+					},
+					"response": []
+				},
+				{
+					"name": "Check Subscription Status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/user-favourites/status/{{user_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user-favourites",
+								"status",
+								"{{user_id}}",
+								""
+							]
+						},
+						"description": "Check if current user is subscribed to specific user"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Subscription Stats",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/user-favourites/stats/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user-favourites",
+								"stats",
+								""
+							]
+						},
+						"description": "Get subscription statistics for current user"
+					},
+					"response": []
+				}
+			],
+			"description": "User subscription management endpoints"
+		},
+		{
+			"name": "Content Service",
+			"item": [
+				{
+					"name": "Get All Posts",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/content/posts/?category=astrology&search=звезды&sort=-rating",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"content",
+								"posts",
+								""
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "astrology",
+									"description": "Filter by category"
+								},
+								{
+									"key": "search",
+									"value": "звезды",
+									"description": "Search in title and preview text"
+								},
+								{
+									"key": "sort",
+									"value": "-rating",
+									"description": "Sort by rating (descending)"
+								}
+							]
+						},
+						"description": "Get all published posts with optional filtering and sorting"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Post Detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/content/posts/{{post_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"content",
+								"posts",
+								"{{post_id}}",
+								""
+							]
+						},
+						"description": "Get specific post details (increments view count)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Post",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Тайны астрологии\",\n    \"preview_text\": \"Изучаем влияние звезд на судьбу человека\",\n    \"content\": \"# Астрология и судьба\\n\\nАстрология - это древняя наука о влиянии небесных тел на жизнь человека.\\n\\n## Основные принципы\\n\\n1. **Влияние планет** - каждая планета оказывает свое воздействие\\n2. **Знаки зодиака** - 12 знаков определяют характер\\n3. **Дома гороскопа** - 12 домов показывают сферы жизни\\n\\n### Практическое применение\\n\\nАстрология помогает понять:\\n- Личные качества\\n- Совместимость с партнерами\\n- Благоприятные периоды\\n- Кармические задачи\",\n    \"preview_image_link\": \"https://example.com/images/astrology-preview.jpg\",\n    \"rating\": 4.5,\n    \"category\": \"astrology\",\n    \"is_published\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/content/posts/create/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"content",
+								"posts",
+								"create",
+								""
+							]
+						},
+						"description": "Create a new post (requires authentication)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Post",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Обновленные тайны астрологии\",\n    \"content\": \"# Обновленная астрология\\n\\nНовая информация о влиянии звезд на судьбу человека.\\n\\n## Дополнительные исследования\\n\\nСовременные астрологи открыли новые закономерности...\",\n    \"preview_image_link\": \"https://example.com/images/updated-astrology-preview.jpg\",\n    \"rating\": 4.8\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/content/posts/{{post_id}}/update/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"content",
+								"posts",
+								"{{post_id}}",
+								"update",
+								""
+							]
+						},
+						"description": "Update a post (only author can update)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Post",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/content/posts/{{post_id}}/delete/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"content",
+								"posts",
+								"{{post_id}}",
+								"delete",
+								""
+							]
+						},
+						"description": "Delete a post (only author can delete)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Posts",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/content/my-posts/?is_published=true",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"content",
+								"my-posts",
+								""
+							],
+							"query": [
+								{
+									"key": "is_published",
+									"value": "true",
+									"description": "Filter by publication status"
+								}
+							]
+						},
+						"description": "Get current user's posts"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Posts by Author",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/content/author/{{user_id}}/posts/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"content",
+								"author",
+								"{{user_id}}",
+								"posts",
+								""
+							]
+						},
+						"description": "Get posts by specific author"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Posts by Category",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/content/category/meditation/posts/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"content",
+								"category",
+								"meditation",
+								"posts",
+								""
+							]
+						},
+						"description": "Get posts by category (esoterics, astrology, tarot, numerology, meditation, spirituality, other)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Top Posts",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/content/top-posts/?limit=5",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"content",
+								"top-posts",
+								""
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "5",
+									"description": "Number of top posts to return"
+								}
+							]
+						},
+						"description": "Get top posts by rating and views"
+					},
+					"response": []
+				}
+			],
+			"description": "Content management endpoints for posts and articles"
+		},
+		{
+			"name": "Examples",
+			"item": [
+				{
+					"name": "Minimal Registration",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fio\": \"Минимальный Пользователь\",\n    \"email\": \"minimal@example.com\",\n    \"password\": \"password123\",\n    \"password_confirm\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/user/sign-up/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"sign-up",
+								""
+							]
+						},
+						"description": "Registration with only required fields (country and language will default to 'Россия' and 'ru')"
+					},
+					"response": []
+				},
+				{
+					"name": "Full Registration",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fio\": \"Полный Пользователь Тестович\",\n    \"email\": \"full@example.com\",\n    \"password\": \"secure_password\",\n    \"password_confirm\": \"secure_password\",\n    \"nickname\": \"full_user\",\n    \"date_of_birth\": \"1992-05-20\",\n    \"country\": \"Беларусь\",\n    \"language\": \"be\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/user/sign-up/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"sign-up",
+								""
+							]
+						},
+						"description": "Registration with all available fields"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Notification Settings",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"notification_email\": false,\n    \"notification_push\": true,\n    \"notification_inherit\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/user/profile/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"profile",
+								""
+							]
+						},
+						"description": "Update notification preferences"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Esoteric Post",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Медитация для духовного роста\",\n    \"preview_text\": \"Простые техники медитации для развития духовности и внутреннего покоя\",\n    \"content\": \"# Медитация для духовного роста\\n\\nМедитация - это древняя практика, которая помогает развить духовность и найти внутренний покой.\\n\\n## Основные техники\\n\\n### 1. Дыхательная медитация\\n- Сосредоточьтесь на дыхании\\n- Считайте вдохи и выдохи\\n- Не пытайтесь контролировать мысли\\n\\n### 2. Мантра-медитация\\n- Повторяйте мантру\\n- Используйте звук 'Ом'\\n- Создавайте вибрации\\n\\n### 3. Визуализация\\n- Представляйте свет\\n- Воображайте мирные места\\n- Создавайте позитивные образы\\n\\n## Польза медитации\\n\\n- Снижение стресса\\n- Улучшение концентрации\\n- Развитие осознанности\\n- Духовный рост\",\n    \"preview_image_link\": \"https://example.com/images/meditation-preview.jpg\",\n    \"rating\": 4.7,\n    \"category\": \"meditation\",\n    \"is_published\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/content/posts/create/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"content",
+								"posts",
+								"create",
+								""
+							]
+						},
+						"description": "Create a meditation-themed post"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Tarot Post",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Таро: Старшие Арканы и их значение\",\n    \"preview_text\": \"Изучаем символику и значение Старших Арканов в картах Таро\",\n    \"content\": \"# Старшие Арканы Таро\\n\\nСтаршие Арканы - это 22 карты, которые представляют основные жизненные уроки и духовные принципы.\\n\\n## Основные Арканы\\n\\n### 0. Шут (The Fool)\\n- **Значение**: Новые начинания, спонтанность\\n- **Символика**: Белый цветок, собака, пропасть\\n- **Совет**: Доверяйте интуиции\\n\\n### 1. Маг (The Magician)\\n- **Значение**: Воля, мастерство, концентрация\\n- **Символика**: Инфинити символ, инструменты\\n- **Совет**: Используйте свои таланты\\n\\n### 2. Верховная Жрица (The High Priestess)\\n- **Значение**: Интуиция, тайны, подсознание\\n- **Символика**: Луна, гранаты, свиток\\n- **Совет**: Прислушайтесь к внутреннему голосу\\n\\n## Практическое применение\\n\\nСтаршие Арканы помогают:\\n- Понять жизненные уроки\\n- Развить духовность\\n- Принять важные решения\\n- Найти свой путь\",\n    \"preview_image_link\": \"https://example.com/images/tarot-major-arcana.jpg\",\n    \"rating\": 4.9,\n    \"category\": \"tarot\",\n    \"is_published\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/content/posts/create/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"content",
+								"posts",
+								"create",
+								""
+							]
+						},
+						"description": "Create a comprehensive Tarot post with detailed content"
+					},
+					"response": []
+				},
+				{
+					"name": "Subscribe to Author",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"subscribed_to\": \"{{user_id}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/user-favourites/subscribe/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user-favourites",
+								"subscribe",
+								""
+							]
+						},
+						"description": "Subscribe to a content author"
+					},
+					"response": []
+				}
+			],
+			"description": "Example requests showing different registration scenarios, notification settings, and content creation"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refresh_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "story_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "post_id",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

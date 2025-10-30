@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: ezoterika_postgres
+    environment:
+      POSTGRES_DB: ezoterika_db
+      POSTGRES_USER: ezoterika_user
+      POSTGRES_PASSWORD: ezoterika_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - ezoterika_network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: ezoterika_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@ezoterika.com
+      PGADMIN_DEFAULT_PASSWORD: admin_password
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    networks:
+      - ezoterika_network
+
+  #backend:
+  #  build: ./Backend
+  #  container_name: ezoterika_backend
+  #  ports:
+  #    - "8000:8000"
+  #  volumes:
+  #    - ./Backend:/app
+  #  restart: unless-stopped
+  #  depends_on:
+  #    - postgres
+  #  networks:
+  #    - ezoterika_network
+  #  environment:
+  #    - DEBUG=1
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+
+networks:
+  ezoterika_network:
+    driver: bridge
