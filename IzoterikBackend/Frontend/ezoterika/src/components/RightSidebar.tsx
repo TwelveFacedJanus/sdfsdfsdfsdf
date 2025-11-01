@@ -78,7 +78,11 @@ export default function RightSidebar() {
       
       <div className="space-y-[10px]">
         {users.map((user, index) => (
-          <div key={user.id} className="flex items-center space-x-3">
+          <div 
+            key={user.id} 
+            className="flex items-center space-x-3 transition-all duration-200 hover:scale-105 hover:bg-[#2A2A2A] p-2 rounded-lg cursor-pointer"
+            style={{ animationDelay: `${index * 100}ms` }}
+          >
             <span className="text-sm font-bold text-[#8A63D2] w-6">
               {index + 1}
             </span>
@@ -86,7 +90,7 @@ export default function RightSidebar() {
               <img 
                 src={user.base64_image} 
                 alt={user.fio}
-                className="w-8 h-8 rounded-full object-cover"
+                className="w-8 h-8 rounded-full object-cover transition-transform duration-200 hover:scale-110"
               />
             ) : (
               <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center">

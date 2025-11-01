@@ -83,7 +83,7 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
 
               {/* Выпадающее меню уведомлений */}
               {isNotificationsOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-[#1A1826] border border-gray-700 rounded-lg shadow-lg z-50">
+                <div className="absolute right-0 mt-2 w-80 bg-[#1A1826] border border-gray-700 rounded-lg shadow-lg z-50 opacity-0 animate-[fadeIn_0.2s_ease-out_forwards]">
                   {/* Заголовок */}
                   <div className="flex justify-between items-center p-4 border-b border-gray-700">
                     <h3 className="text-white font-semibold">Уведомления</h3>
@@ -165,7 +165,7 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
 
               {/* Выпадающее меню языков */}
               {isLanguageOpen && (
-                <div className="absolute right-0 mt-2 w-32 bg-[#171B27] border border-gray-700 rounded-md shadow-lg z-50">
+                <div className="absolute right-0 mt-2 w-32 bg-[#171B27] border border-gray-700 rounded-md shadow-lg z-50 opacity-0 animate-[fadeIn_0.2s_ease-out_forwards]">
                   <div className="py-1">
                     <a href="#" className="block px-4 py-2 text-sm text-white hover:bg-[#333333]">
                       Русский
@@ -208,7 +208,7 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
 
               {/* Выпадающее меню профиля */}
               {isProfileOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-[#171B27] border border-gray-700 rounded-md shadow-lg z-50">
+                <div className="absolute right-0 mt-2 w-48 bg-[#171B27] border border-gray-700 rounded-md shadow-lg z-50 opacity-0 animate-[fadeIn_0.2s_ease-out_forwards]">
                   <div className="py-1">
                     <a href="/profile" className="block px-4 py-2 text-sm text-white hover:bg-[#333333]">
                       Мой профиль

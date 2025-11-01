@@ -141,7 +141,7 @@ export default function ContentsPage() {
             />
             
             {/* Центральная часть с статьями */}
-            <div style={{ width: '829px' }}>
+            <div style={{ width: '893px' }}>
               {postsLoading ? (
                 <div className="space-y-6">
                   {[...Array(3)].map((_, i) => (

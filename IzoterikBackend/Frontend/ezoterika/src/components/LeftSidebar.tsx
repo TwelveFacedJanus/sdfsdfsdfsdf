@@ -83,15 +83,16 @@ export default function LeftSidebar({ activeCategory = 'all', onCategoryChange }
       }}
     >
       <nav className="space-y-[10px]">
-        {categories.map((category) => (
+        {categories.map((category, index) => (
           <button
             key={category.id}
             onClick={() => handleCategoryClick(category.id)}
-            className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors text-left ${
+            className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 text-left ${
               activeCategory === category.id
-                ? 'bg-[#333333] text-white'
-                : 'text-gray-300 hover:text-white hover:bg-[#2A2A2A]'
+                ? 'bg-[#333333] text-white scale-105'
+                : 'text-gray-300 hover:text-white hover:bg-[#2A2A2A] hover:scale-105'
             }`}
+            style={{ animationDelay: `${index * 50}ms` }}
           >
             <span className="text-xs">●</span>
             <span className="text-sm font-medium">{category.name}</span>

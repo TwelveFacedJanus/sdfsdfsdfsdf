@@ -39,7 +39,16 @@ export default function ArticleCard({
     }
   };
   return (
-    <article className="bg-[#1A1826] rounded-lg p-6 mb-6">
+    <article 
+      className="rounded-[32px] border mb-[10px] transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
+      style={{ 
+        backgroundColor: '#00051B',
+        padding: '32px',
+        borderWidth: '1px',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        boxShadow: '0px 0px 120px 0px rgba(255, 255, 255, 0.1)'
+      }}
+    >
       {/* Заголовок и мета-информация */}
       <div className="flex justify-between items-start mb-4">
         <h2 
