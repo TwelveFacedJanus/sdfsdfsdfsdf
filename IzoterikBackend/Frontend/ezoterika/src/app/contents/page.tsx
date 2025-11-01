@@ -141,7 +141,7 @@ export default function ContentsPage() {
             />
             
             {/* Центральная часть с статьями */}
-            <div className="flex-1">
+            <div style={{ width: '829px' }}>
               {postsLoading ? (
                 <div className="space-y-6">
                   {[...Array(3)].map((_, i) => (

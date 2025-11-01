@@ -37,11 +37,19 @@ export default function RightSidebar() {
 
   if (isLoading) {
     return (
-      <div className="w-64 bg-[#1A1826] rounded-lg p-4 h-fit">
+      <div 
+        className="bg-[#1A1826] rounded-[32px] p-6 h-fit border"
+        style={{ 
+          width: '431px',
+          borderWidth: '1px',
+          borderColor: 'rgba(255, 255, 255, 0.1)',
+          boxShadow: '0px 0px 120px 0px rgba(255, 255, 255, 0.1)'
+        }}
+      >
         <h3 className="text-lg font-bold text-white mb-4">
           Топ практиков
         </h3>
-        <div className="space-y-3">
+        <div className="space-y-[10px]">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="flex items-center space-x-3">
               <div className="w-6 h-6 bg-gray-600 rounded animate-pulse"></div>
@@ -55,12 +63,20 @@ export default function RightSidebar() {
   }
 
   return (
-    <div className="w-64 bg-[#1A1826] rounded-lg p-4 h-fit">
+    <div 
+      className="bg-[#00051B] rounded-[32px] p-6 h-fit border"
+      style={{ 
+        width: '431px',
+        borderWidth: '1px',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        boxShadow: '0px 0px 120px 0px rgba(255, 255, 255, 0.1)'
+      }}
+    >
       <h3 className="text-lg font-bold text-white mb-4">
         Топ практиков
       </h3>
       
-      <div className="space-y-3">
+      <div className="space-y-[10px]">
         {users.map((user, index) => (
           <div key={user.id} className="flex items-center space-x-3">
             <span className="text-sm font-bold text-[#8A63D2] w-6">

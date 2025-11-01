@@ -8,6 +8,7 @@ interface HeaderProps {
 }
 
 export default function Header({ activePage = 'contents' }: HeaderProps) {
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [userData, setUserData] = useState<any>(null);
@@ -43,11 +44,17 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
               <a
                 key={item.id}
                 href={item.href}
-                className={`px-3 py-2 text-sm font-medium transition-colors relative h-full flex items-center ${
+                className={`px-3 py-2 transition-colors relative h-full flex items-center ${
                   activePage === item.id
                     ? 'bg-[#333333] text-white'
                     : 'text-white hover:text-gray-300'
                 }`}
+                style={{ 
+                  fontSize: '18px', 
+                  fontWeight: 400, 
+                  lineHeight: '150%', 
+                  letterSpacing: '0%' 
+                }}
               >
                 {item.label}
                 {activePage === item.id && (
@@ -58,10 +65,13 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
           </nav>
 
           {/* Правый блок - уведомления, язык, профиль */}
-          <div className="flex items-center space-x-4 ml-auto">
+          <div className="flex items-center ml-auto" style={{ gap: '32px' }}>
             {/* Уведомления */}
             <div className="relative">
-              <button className="text-white hover:text-gray-300 transition-colors">
+              <button 
+                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                className="text-white hover:text-gray-300 transition-colors"
+              >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
@@ -70,6 +80,69 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
               <span className="absolute -top-2 -right-2 bg-[#8A63D2] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                 99
               </span>
+
+              {/* Выпадающее меню уведомлений */}
+              {isNotificationsOpen && (
+                <div className="absolute right-0 mt-2 w-80 bg-[#1A1826] border border-gray-700 rounded-lg shadow-lg z-50">
+                  {/* Заголовок */}
+                  <div className="flex justify-between items-center p-4 border-b border-gray-700">
+                    <h3 className="text-white font-semibold">Уведомления</h3>
+                    <button className="text-gray-400 hover:text-white text-sm transition-colors">
+                      Отметить все как прочитано
+                    </button>
+                  </div>
+
+                  {/* Список уведомлений */}
+                  <div className="max-h-96 overflow-y-auto">
+                    {/* Уведомление 1 */}
+                    <div className="p-4 border-b border-gray-700 hover:bg-[#2A2A2A] transition-colors cursor-pointer">
+                      <div className="flex items-start space-x-3">
+                        <img 
+                          src="https://ui-avatars.com/api/?name=Nikita+Belkin&background=random" 
+                          alt="Nikita Belkin"
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                        <div className="flex-1">
+                          <p className="text-white text-sm">Никита Белкин выложил новый пост</p>
+                          <p className="text-gray-400 text-xs mt-1">2 часа назад</p>
+                        </div>
+                        <div className="w-2 h-2 bg-[#8A63D2] rounded-full"></div>
+                      </div>
+                    </div>
+
+                    {/* Уведомление 2 */}
+                    <div className="p-4 border-b border-gray-700 hover:bg-[#2A2A2A] transition-colors cursor-pointer">
+                      <div className="flex items-start space-x-3">
+                        <img 
+                          src="https://ui-avatars.com/api/?name=Maria+Konovalova&background=random" 
+                          alt="Maria Konovalova"
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                        <div className="flex-1">
+                          <p className="text-white text-sm">Мария Коновалова подписалась на вас</p>
+                          <p className="text-gray-400 text-xs mt-1">1 день назад</p>
+                        </div>
+                        <div className="w-2 h-2 bg-[#8A63D2] rounded-full"></div>
+                      </div>
+                    </div>
+
+                    {/* Уведомление 3 */}
+                    <div className="p-4 hover:bg-[#2A2A2A] transition-colors cursor-pointer">
+                      <div className="flex items-start space-x-3">
+                        <img 
+                          src="https://ui-avatars.com/api/?name=Alina+Rulicheva&background=random" 
+                          alt="Alina Rulicheva"
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                        <div className="flex-1">
+                          <p className="text-white text-sm">Алина Руличева отписалась от вас</p>
+                          <p className="text-gray-400 text-xs mt-1">Неделю назад</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Выбор языка */}

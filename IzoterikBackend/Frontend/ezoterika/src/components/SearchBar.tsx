@@ -19,18 +19,24 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto mb-8">
-      <form onSubmit={handleSubmit} className="relative">
+    <div className="mb-8 mx-auto" style={{ width: '893px' }}>
+      <form onSubmit={handleSubmit} className="flex items-center justify-between rounded-[12px]" style={{ 
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        padding: '16px 20px',
+        height: '52px',
+        gap: '4px'
+      }}>
         <input
           type="text"
           value={searchQuery}
           onChange={handleInputChange}
           placeholder="Поиск по авторам, ключевым словам и типу контента"
-          className="w-full px-4 py-3 bg-[#1A1826] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#8A63D2] transition-colors"
+          className="flex-1 bg-transparent text-white placeholder-gray-400 focus:outline-none transition-colors"
+          style={{ fontSize: '14px' }}
         />
         <button
           type="submit"
-          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+          className="text-gray-400 hover:text-white transition-colors"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
