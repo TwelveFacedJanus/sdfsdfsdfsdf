@@ -418,11 +418,9 @@ export default function ProfilePage() {
       <>
         <Header activePage="profile" />
         <div 
-          className="min-h-screen bg-cover bg-center bg-fixed"
+          className="min-h-screen"
           style={{ 
-            backgroundImage: "url('/BG.png')",
-            backgroundRepeat: 'no-repeat',
-            backgroundAttachment: 'fixed'
+            backgroundColor: '#090F1B'
           }}
         >
           <div className="container mx-auto px-4 py-8">
@@ -462,32 +460,29 @@ export default function ProfilePage() {
     <>
       <Header activePage="profile" />
       <div 
-        className="min-h-screen bg-cover bg-center bg-fixed"
+        className="min-h-screen"
         style={{ 
-          backgroundImage: "url('/BG.png')",
-          backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed'
+          backgroundColor: '#090F1B'
         }}
       >
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-7xl mx-auto">
-            <div className="flex gap-8">
-              {/* Левая навигация */}
-              <div className="w-64">
-                <div className="bg-[#1A1826] rounded-lg p-6">
-                  <h1 className="text-2xl font-bold text-white mb-6">
-                    {getSectionTitle()}
-                  </h1>
-                  
+            {/* Заголовок */}
+            <h1 className="text-white mb-6" style={{ fontSize: '52px', fontWeight: 600, lineHeight: '120%', letterSpacing: '0%' }}>Профиль</h1>
+            
+            <div className="bg-[#1A1826] rounded-lg p-8" style={{ width: '886px' }}>
+              <div className="flex gap-8">
+                {/* Левая навигация */}
+                <div className="w-64 flex flex-col" style={{ minHeight: '600px' }}>
                   <nav className="space-y-2 mb-8">
                     {navigationItems.map((item) => (
                       <button
                         key={item.id}
                         onClick={() => setActiveSection(item.id)}
-                        className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                        className={`w-full text-left py-3 transition-colors ${
                           activeSection === item.id
-                            ? 'bg-[#8A63D2] text-white border-2 border-dotted border-[#8A63D2]'
-                            : 'text-white hover:bg-[#333333]'
+                            ? 'bg-[#8A63D2] text-white px-4 rounded-lg'
+                            : 'text-gray-400 hover:bg-[#333333] px-4 rounded-lg'
                         }`}
                       >
                         {item.label}
@@ -497,39 +492,28 @@ export default function ProfilePage() {
 
                   <button
                     onClick={handleLogout}
-                    className="w-full flex items-center space-x-2 text-white hover:text-gray-300 transition-colors"
+                    className="w-full flex items-center space-x-2 text-white hover:text-gray-300 transition-colors mt-auto pt-8"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
                     <span>Выйти</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </button>
                 </div>
-              </div>
 
-              {/* Основной контент */}
-              <div className="flex-1">
-                <div className="bg-[#1A1826] rounded-lg p-8">
+                {/* Основной контент */}
+                <div className="flex-1">
                   {activeSection === 'data' && (
                     <div className="space-y-6">
                       {/* Аватар */}
-                      <div className="flex items-start space-x-6">
+                      <div className="flex items-start space-x-4">
                         <div className="flex-1">
                           <label className="block text-white text-sm font-medium mb-2">
                             Аватар
                           </label>
-                          <p className="text-gray-400 text-sm mb-4">
-                            Нажмите на картинку чтобы обновить или удалить аватарку
+                          <p className="text-gray-400 text-sm">
+                            Нажмите на картинку чтобы обновить<br />или удалить аватарку
                           </p>
-                          {userProfile?.base64_image && (
-                            <button
-                              onClick={handleRemoveAvatar}
-                              disabled={isUploadingAvatar}
-                              className="text-red-400 text-sm hover:text-red-300 transition-colors disabled:opacity-50"
-                            >
-                              Удалить аватарку
-                            </button>
-                          )}
                         </div>
                         <div className="w-24 h-24 relative">
                           {userProfile?.base64_image ? (
@@ -649,10 +633,10 @@ export default function ProfilePage() {
                       </div>
 
                       {/* Кнопки действий */}
-                      <div className="flex space-x-4 pt-6">
+                      <div className="flex justify-end space-x-4 pt-6">
                         <button
                           onClick={handleCancel}
-                          className="px-6 py-3 bg-[#2A2A2A] text-white rounded-lg hover:bg-[#3A3A3A] transition-colors"
+                          className="px-6 py-3 bg-[#1A1826] border border-gray-600 text-white rounded-lg hover:bg-[#2A2A2A] transition-colors"
                         >
                           Отменить
                         </button>
@@ -878,10 +862,10 @@ export default function ProfilePage() {
                       </div>
 
                       {/* Кнопки действий */}
-                      <div className="flex space-x-4 pt-6">
+                      <div className="flex justify-end space-x-4 pt-6">
                         <button
                           onClick={handleCancelSettings}
-                          className="px-6 py-3 bg-[#2A2A2A] text-white rounded-lg hover:bg-[#3A3A3A] transition-colors"
+                          className="px-6 py-3 bg-[#1A1826] border border-gray-600 text-white rounded-lg hover:bg-[#2A2A2A] transition-colors"
                         >
                           Отменить
                         </button>

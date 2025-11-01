@@ -7,7 +7,7 @@ const getApiBaseUrl = () => {
     return '';
   }
   // Server-side: use backend URL
-  return 'http://backend:8000';
+  return 'http://localhost:8000';
 };
 
 export const API_BASE_URL = getApiBaseUrl();

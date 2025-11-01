@@ -51,8 +51,16 @@ export default function LeftSidebar({ activeCategory = 'all', onCategoryChange }
 
   if (isLoading) {
     return (
-      <div className="w-64 bg-[#1A1826] rounded-lg p-4 h-fit">
-        <div className="space-y-2">
+      <div 
+        className="bg-[#1A1826] rounded-[32px] p-6 h-fit border"
+        style={{ 
+          width: '277px',
+          borderWidth: '1px',
+          borderColor: 'rgba(255, 255, 255, 0.1)',
+          boxShadow: '0px 0px 120px 0px rgba(255, 255, 255, 0.1)'
+        }}
+      >
+        <div className="space-y-[10px]">
           {[...Array(8)].map((_, i) => (
             <div key={i} className="flex items-center space-x-3 px-3 py-2 rounded-lg">
               <div className="w-2 h-2 bg-gray-600 rounded-full animate-pulse"></div>
@@ -65,8 +73,16 @@ export default function LeftSidebar({ activeCategory = 'all', onCategoryChange }
   }
 
   return (
-    <div className="w-64 bg-[#1A1826] rounded-lg p-4 h-fit">
-      <nav className="space-y-2">
+    <div 
+      className="bg-[#00051B] rounded-[32px] p-6 h-fit border"
+      style={{ 
+        width: '277px',
+        borderWidth: '1px',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        boxShadow: '0px 0px 120px 0px rgba(255, 255, 255, 0.1)'
+      }}
+    >
+      <nav className="space-y-[10px]">
         {categories.map((category) => (
           <button
             key={category.id}

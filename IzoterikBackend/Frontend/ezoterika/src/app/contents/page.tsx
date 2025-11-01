@@ -129,19 +129,6 @@ export default function ContentsPage() {
         }}
       >
         <div className="container mx-auto px-4 py-8">
-          {/* Кнопка создания контента */}
-          <div className="mb-6 flex justify-end">
-            <button
-              onClick={() => router.push('/create-content')}
-              className="flex items-center space-x-2 px-6 py-3 bg-[#8A63D2] text-white rounded-lg hover:bg-[#7A53C2] transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              <span>Создать контент</span>
-            </button>
-          </div>
-
           {/* Поиск */}
           <SearchBar onSearch={handleSearch} />
           

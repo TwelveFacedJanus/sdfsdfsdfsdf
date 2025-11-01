@@ -25,9 +25,9 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
   ];
 
   return (
-    <header className="bg-[#1A1826] border-b border-gray-700">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+    <header className="bg-[#171B27] border-b" style={{ borderBottomWidth: '1px', borderBottomColor: 'rgba(255, 255, 255, 0.05)' }}>
+      <div className="max-w-[1920px] w-full mx-auto px-[50px]">
+        <div className="flex items-center h-[100px]">
           {/* Логотип */}
           <div className="shrink-0">
             <img 
@@ -38,12 +38,12 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
           </div>
 
           {/* Навигация */}
-          <nav className="hidden md:flex space-x-8">
+          <nav className="hidden md:flex space-x-8 h-full ml-[60px]">
             {navigationItems.map((item) => (
               <a
                 key={item.id}
                 href={item.href}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors relative ${
+                className={`px-3 py-2 text-sm font-medium transition-colors relative h-full flex items-center ${
                   activePage === item.id
                     ? 'bg-[#333333] text-white'
                     : 'text-white hover:text-gray-300'
@@ -58,12 +58,12 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
           </nav>
 
           {/* Правый блок - уведомления, язык, профиль */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 ml-auto">
             {/* Уведомления */}
             <div className="relative">
               <button className="text-white hover:text-gray-300 transition-colors">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM5 7h14l-7 7-7-7z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
               </button>
               {/* Бейдж с количеством уведомлений */}
@@ -92,7 +92,7 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
 
               {/* Выпадающее меню языков */}
               {isLanguageOpen && (
-                <div className="absolute right-0 mt-2 w-32 bg-[#1A1826] border border-gray-700 rounded-md shadow-lg z-50">
+                <div className="absolute right-0 mt-2 w-32 bg-[#171B27] border border-gray-700 rounded-md shadow-lg z-50">
                   <div className="py-1">
                     <a href="#" className="block px-4 py-2 text-sm text-white hover:bg-[#333333]">
                       Русский
@@ -135,7 +135,7 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
 
               {/* Выпадающее меню профиля */}
               {isProfileOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-[#1A1826] border border-gray-700 rounded-md shadow-lg z-50">
+                <div className="absolute right-0 mt-2 w-48 bg-[#171B27] border border-gray-700 rounded-md shadow-lg z-50">
                   <div className="py-1">
                     <a href="/profile" className="block px-4 py-2 text-sm text-white hover:bg-[#333333]">
                       Мой профиль
