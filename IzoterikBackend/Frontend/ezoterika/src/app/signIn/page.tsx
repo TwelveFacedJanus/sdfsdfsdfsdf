@@ -187,6 +187,20 @@ export default function SignInPage() {
             </a>
           </div>
         </form>
+        {/* Хеш проекта */}
+        <div 
+          className="text-center mt-4"
+          style={{ 
+            opacity: 0.15,
+            color: '#ffffff',
+            fontSize: '10px',
+            fontFamily: 'monospace'
+          }}
+        >
+          {typeof window !== 'undefined' && process.env.NEXT_PUBLIC_GIT_HASH 
+            ? process.env.NEXT_PUBLIC_GIT_HASH 
+            : '71888676087b166ae93e9b4b98f287d4f37666c3'}
+        </div>
     </div>
   );
 }

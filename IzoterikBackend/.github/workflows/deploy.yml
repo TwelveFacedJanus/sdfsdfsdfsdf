@@ -1,0 +1,122 @@
+name: Deploy to Server
+
+# ВАЖНО: Для безопасности рекомендуется использовать GitHub Secrets
+# Вместо хардкода паролей в коде, настройте secrets в GitHub:
+# Settings -> Secrets and variables -> Actions -> New repository secret
+# Создайте secrets: SSH_HOST, SSH_USER, SSH_PASSWORD
+# После настройки secrets удалите хардкод из строк 19-21
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Позволяет запускать вручную через GitHub UI
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Deploy to server
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST || '103.228.171.39' }}
+          SSH_USER: ${{ secrets.SSH_USER || 'root' }}
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD || 'M7b4zvuIfRhrPhcH' }}
+          GITHUB_REPO: ${{ github.repository }}
+        run: |
+          # Установка sshpass для подключения по паролю
+          sudo apt-get update
+          sudo apt-get install -y sshpass
+          
+          # Команда для деплоя на сервер
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $SSH_USER@$SSH_HOST bash << EOF
+            set -e
+            
+            # Экспортируем переменные
+            export GITHUB_REPO="${GITHUB_REPO}"
+            
+            echo "=== Начало деплоя ==="
+            
+            # Проверка наличия Docker
+            if ! command -v docker &> /dev/null; then
+              echo "Ошибка: Docker не установлен на сервере"
+              exit 1
+            fi
+            
+            # Проверка наличия docker-compose
+            if ! command -v docker-compose &> /dev/null; then
+              echo "Ошибка: docker-compose не установлен на сервере"
+              exit 1
+            fi
+            
+            echo "Docker версия: \$(docker --version)"
+            echo "Docker Compose версия: \$(docker-compose --version)"
+            
+            # Переходим в директорию проекта
+            PROJECT_DIR="/root/IzoterikBackend"
+            
+            # Создаем директорию если её нет
+            mkdir -p \$PROJECT_DIR
+            cd \$PROJECT_DIR
+            
+            # Обновляем код из репозитория
+            if [ -d ".git" ]; then
+              echo "Обновление кода из репозитория..."
+              git fetch origin
+              git reset --hard origin/main
+              git clean -fd
+            else
+              echo "Клонирование репозитория..."
+              # Для приватного репозитория может потребоваться токен или SSH ключ
+              if [ -n "\$GITHUB_TOKEN" ]; then
+                git clone https://\${GITHUB_TOKEN}@github.com/\${GITHUB_REPO}.git .
+              else
+                git clone https://github.com/\${GITHUB_REPO}.git .
+              fi
+            fi
+            
+            # Показываем текущий коммит
+            echo "Текущий коммит: \$(git rev-parse HEAD)"
+            
+            # Останавливаем текущие контейнеры
+            echo "Остановка текущих контейнеров..."
+            docker-compose down || true
+            
+            # Удаляем старые образы (опционально, для экономии места)
+            # docker system prune -af --volumes || true
+            
+            # Собираем и запускаем контейнеры
+            echo "Сборка и запуск контейнеров..."
+            docker-compose build --no-cache
+            
+            echo "Запуск контейнеров..."
+            docker-compose up -d
+            
+            # Ждем немного для запуска контейнеров
+            sleep 10
+            
+            # Показываем статус контейнеров
+            echo "=== Статус контейнеров ==="
+            docker-compose ps
+            
+            # Проверяем, что все контейнеры запущены
+            if ! docker-compose ps | grep -q "Up"; then
+              echo "Предупреждение: некоторые контейнеры могут быть не запущены"
+            fi
+            
+            # Проверяем логи на наличие ошибок
+            echo "=== Последние логи backend ==="
+            docker-compose logs --tail=30 backend || true
+            
+            echo "=== Последние логи frontend ==="
+            docker-compose logs --tail=30 frontend || true
+            
+            echo "=== Последние логи postgres ==="
+            docker-compose logs --tail=20 postgres || true
+            
+            echo "=== Деплой завершен успешно! ==="
+          EOF
+
