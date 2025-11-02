@@ -3,7 +3,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenRefreshView, TokenBlacklistView
+from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from .serializers import UserSignUpSerializer, UserSignInSerializer, UserSerializer, UserUpdateSerializer
 from .models import User
 from django.core.mail import send_mail
@@ -304,15 +305,39 @@ class CustomTokenRefreshView(TokenRefreshView):
     Обновление JWT токена
     POST /api/user/token/refresh/
     """
-    pass
+    def post(self, request, *args, **kwargs):
+        try:
+            return super().post(request, *args, **kwargs)
+        except Exception as e:
+            # Логируем ошибку для отладки
+            import traceback
+            print(f"Token refresh error: {str(e)}")
+            print(traceback.format_exc())
+            
+            # Возвращаем понятную ошибку
+            if isinstance(e, (InvalidToken, TokenError)):
+                return Response({
+                    'detail': str(e)
+                }, status=status.HTTP_401_UNAUTHORIZED)
+            
+            # Для других ошибок возвращаем общее сообщение
+            return Response({
+                'detail': 'Токен обновления недействителен или истек. Пожалуйста, войдите снова.'
+            }, status=status.HTTP_401_UNAUTHORIZED)
 
 
-class CustomTokenBlacklistView(TokenBlacklistView):
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def logout(request):
     """
-    Выход из системы (черный список токена)
+    Выход из системы (без blacklist, просто подтверждение)
     POST /api/user/logout/
     """
-    pass
+    # Без blacklist мы просто возвращаем успешный ответ
+    # Клиент должен удалить токены на своей стороне
+    return Response({
+        'message': 'Вы успешно вышли из системы'
+    }, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])

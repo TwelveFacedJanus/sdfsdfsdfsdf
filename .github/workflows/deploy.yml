@@ -26,13 +26,24 @@ jobs:
           SSH_USER: ${{ secrets.SSH_USER || 'root' }}
           SSH_PASSWORD: ${{ secrets.SSH_PASSWORD || 'M7b4zvuIfRhrPhcH' }}
           GITHUB_REPO: ${{ github.repository }}
+        # NOTE: If SSH_HOST secret is set incorrectly in GitHub Secrets, 
+        # it will override the fallback value here. Check GitHub repo settings!
         run: |
           # Установка sshpass для подключения по паролю
           sudo apt-get update
           sudo apt-get install -y sshpass
           
-          # Команда для деплоя на сервер
-          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $SSH_USER@$SSH_HOST bash << EOF
+          # Debug: показываем к какому хосту подключаемся
+          echo "Attempting to connect to: $SSH_USER@$SSH_HOST"
+          
+          # Команда для деплоя на сервер с увеличенным таймаутом
+          sshpass -p "$SSH_PASSWORD" ssh \
+            -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            -o ConnectTimeout=30 \
+            -o ServerAliveInterval=60 \
+            -o ServerAliveCountMax=3 \
+            $SSH_USER@$SSH_HOST bash << EOF
             set -e
             
             # Экспортируем переменные
