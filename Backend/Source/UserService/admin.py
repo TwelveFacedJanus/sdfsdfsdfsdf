@@ -7,7 +7,7 @@ from .models import User
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
-    list_display = ('avatar', 'email', 'fio', 'nickname', 'country', 'language', 'rating', 'is_subscribed', 'is_email_verified', 'is_active', 'is_staff', 'date_joined')
+    list_display = ('avatar', 'email', 'fio', 'nickname', 'country', 'language', 'rating', 'is_subscribed', 'is_email_verified', 'is_active', 'is_staff', 'date_joined', 'view_profile_button')
     list_filter = ('is_active', 'is_staff', 'is_superuser', 'country', 'language', 'is_subscribed', 'is_email_verified', 'notification_email', 'notification_push', 'date_joined')
     search_fields = ('email', 'fio', 'nickname')
     ordering = ('-date_joined',)
@@ -35,6 +35,17 @@ class CustomUserAdmin(UserAdmin):
     )
     
     readonly_fields = ('date_joined', 'last_login', 'email_verification_token', 'email_verification_token_expires', 'avatar_display')
+    
+    def view_profile_button(self, obj):
+        """Кнопка просмотра профиля пользователя"""
+        if obj.pk:
+            profile_url = f"http://103.228.171.39:3000/profile"
+            return format_html(
+                '<a href="{}" target="_blank" class="button" style="padding: 5px 10px; background: #417690; color: white; text-decoration: none; border-radius: 3px;">👤 Профиль</a>',
+                profile_url
+            )
+        return '-'
+    view_profile_button.short_description = 'Профиль'
     
     def avatar(self, obj):
         """Отображение аватара в списке"""

@@ -1,0 +1,12 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+
+{% block object-tools-items %}
+  {{ block.super }}
+  <li>
+    <a href="http://103.228.171.39:3000/create-content" target="_blank" style="background: #70BF2B; color: white; padding: 10px 15px; border-radius: 3px; text-decoration: none;">
+      ➕ Создать пост на Frontend
+    </a>
+  </li>
+{% endblock %}
+

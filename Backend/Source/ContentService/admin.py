@@ -55,14 +55,17 @@ class PostAdmin(admin.ModelAdmin):
         """Кнопки действий"""
         if obj.pk:
             view_url = f"http://103.228.171.39:3000/posts/{obj.id}"
-            edit_url = reverse('admin:ContentService_post_change', args=[obj.pk])
+            edit_frontend_url = f"http://103.228.171.39:3000/edit-content/{obj.id}"
+            edit_admin_url = reverse('admin:ContentService_post_change', args=[obj.pk])
             return format_html(
-                '<div style="display: flex; gap: 5px;">'
-                '<a href="{}" target="_blank" class="button" style="padding: 5px 10px; background: #417690; color: white; text-decoration: none; border-radius: 3px;">👁️ Посмотреть</a>'
-                '<a href="{}" class="button" style="padding: 5px 10px; background: #70BF2B; color: white; text-decoration: none; border-radius: 3px;">✏️ Редактировать</a>'
+                '<div style="display: flex; gap: 5px; flex-wrap: wrap;">'
+                '<a href="{}" target="_blank" class="button" style="padding: 5px 10px; background: #417690; color: white; text-decoration: none; border-radius: 3px; white-space: nowrap;">👁️ Посмотреть</a>'
+                '<a href="{}" target="_blank" class="button" style="padding: 5px 10px; background: #70BF2B; color: white; text-decoration: none; border-radius: 3px; white-space: nowrap;">✏️ Frontend</a>'
+                '<a href="{}" class="button" style="padding: 5px 10px; background: #BA55D3; color: white; text-decoration: none; border-radius: 3px; white-space: nowrap;">⚙️ Admin</a>'
                 '</div>',
                 view_url,
-                edit_url
+                edit_frontend_url,
+                edit_admin_url
             )
         return '-'
     action_buttons.short_description = 'Действия'

@@ -324,6 +324,13 @@ export const createContent = async (contentData: any): Promise<any> => {
   });
 };
 
+export const updateContent = async (postId: string, contentData: any): Promise<any> => {
+  return apiRequest(`${API_ENDPOINTS.CONTENT.POST_DETAIL}${postId}/`, {
+    method: 'PATCH',
+    body: JSON.stringify(contentData),
+  });
+};
+
 // Comments API
 export const getComments = async (postId: string, sortOrder: 'newest' | 'oldest' = 'newest'): Promise<any> => {
   const params = new URLSearchParams();
