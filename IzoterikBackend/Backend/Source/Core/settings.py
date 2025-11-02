@@ -86,7 +86,7 @@ DATABASES = {
         'NAME': 'ezoterika_db',
         'USER': 'ezoterika_user',
         'PASSWORD': 'ezoterika_password',
-        'HOST': 'ezoterika_postgres',
+        'HOST': 'postgres',
         'PORT': '5432',
     }
 }
