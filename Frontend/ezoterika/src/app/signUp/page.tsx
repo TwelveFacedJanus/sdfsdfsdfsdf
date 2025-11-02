@@ -104,7 +104,7 @@ export default function SignUpPage() {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               className="w-full px-3 sm:px-4 py-2 sm:py-3 lg:py-4 bg-transparent border border-gray-300 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-white transition-colors text-sm sm:text-base"
-              placeholder="Введите ваше ФИО"
+              placeholder="ФИО"
               required
             />
           </div>
@@ -120,7 +120,7 @@ export default function SignUpPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 sm:px-4 py-2 sm:py-3 lg:py-4 bg-transparent border border-gray-300 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-white transition-colors text-sm sm:text-base"
-              placeholder="Введите вашу почту"
+              placeholder="Почта"
               required
             />
           </div>
@@ -137,7 +137,7 @@ export default function SignUpPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-3 sm:px-4 py-2 sm:py-3 lg:py-4 bg-transparent border border-gray-300 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-white transition-colors text-sm sm:text-base"
-                placeholder="Введите пароль"
+                placeholder="Пароль"
                 required
               />
             </div>
@@ -151,7 +151,7 @@ export default function SignUpPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full px-3 sm:px-4 py-2 sm:py-3 lg:py-4 bg-transparent border border-gray-300 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-white transition-colors text-sm sm:text-base"
-                placeholder="Повторите пароль"
+                placeholder="Пароль еще раз"
                 required
               />
             </div>
@@ -176,7 +176,7 @@ export default function SignUpPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full py-2 sm:py-3 lg:py-4 rounded-lg font-medium transition-colors text-sm sm:text-base ${
+            className={`w-full py-2 sm:py-3 lg:py-4 rounded-[360px] font-medium transition-colors text-sm sm:text-base ${
               isLoading 
                 ? 'bg-gray-600 text-gray-300 cursor-not-allowed' 
                 : 'bg-[#8A63D2] text-white hover:bg-[#7A53C2]'
@@ -190,7 +190,7 @@ export default function SignUpPage() {
             <button
               type="button"
               onClick={handleGoogleAuth}
-              className="flex-1 bg-[#2A2836] text-white py-2 sm:py-3 lg:py-4 rounded-lg font-medium hover:bg-[#323050] transition-colors flex items-center justify-center space-x-2 text-xs sm:text-sm border border-gray-300"
+              className="flex-1 bg-[#2A2836] text-white py-2 sm:py-3 lg:py-4 rounded-[360px] font-medium hover:bg-[#323050] transition-colors flex items-center justify-center space-x-2 text-xs sm:text-sm border border-gray-300"
             >
               <div className="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
                 <svg viewBox="0 0 24 24" className="w-4 h-4 sm:w-5 sm:h-5">
@@ -207,7 +207,7 @@ export default function SignUpPage() {
             <button
               type="button"
               onClick={handleFacebookAuth}
-              className="flex-1 bg-[#2A2836] text-white py-2 sm:py-3 lg:py-4 rounded-lg font-medium hover:bg-[#323050] transition-colors flex items-center justify-center space-x-2 text-xs sm:text-sm border border-gray-300"
+              className="flex-1 bg-[#2A2836] text-white py-2 sm:py-3 lg:py-4 rounded-[360px] font-medium hover:bg-[#323050] transition-colors flex items-center justify-center space-x-2 text-xs sm:text-sm border border-gray-300"
             >
               <div className="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
                 <svg viewBox="0 0 24 24" className="w-4 h-4 sm:w-5 sm:h-5">

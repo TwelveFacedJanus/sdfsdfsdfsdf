@@ -209,7 +209,7 @@ CORS_ALLOW_HEADERS = [
 ]
 
 # Настройки для разработки
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.0.114', 'backend']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.0.114', '103.228.171.39', 'backend']
 
 # Disable APPEND_SLASH to allow URLs without trailing slashes for API calls
 APPEND_SLASH = False
@@ -219,6 +219,8 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     'http://192.168.0.114:3000',
+    'http://103.228.171.39:3000',
+    'http://103.228.171.39:8000',
 ]
 
 # Email Configuration

@@ -30,6 +30,8 @@ services:
       - ezoterika_network
     environment:
       - DEBUG=1
+      - DJANGO_SUPERUSER_EMAIL=admin@ezoterika.com
+      - DJANGO_SUPERUSER_PASSWORD=admin123
 
   frontend:
     build: ./Frontend/ezoterika
