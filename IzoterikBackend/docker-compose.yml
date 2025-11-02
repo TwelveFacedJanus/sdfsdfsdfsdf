@@ -38,11 +38,15 @@ services:
       - "3000:3000"
     volumes:
       - ./Frontend/ezoterika:/app
+      - /app/.next  # Exclude .next from volume mount to preserve build
+      - /app/node_modules  # Exclude node_modules from volume mount
     restart: unless-stopped
     networks:
       - ezoterika_network
     depends_on:
       - backend
+    environment:
+      - NODE_ENV=production
 
 volumes:
   postgres_data:
