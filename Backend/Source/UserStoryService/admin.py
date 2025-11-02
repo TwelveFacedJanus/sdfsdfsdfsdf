@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.html import format_html
 from .models import UserStory
 
 
@@ -9,6 +10,8 @@ class UserStoryAdmin(admin.ModelAdmin):
     search_fields = ('user__fio', 'user__email', 'content')
     ordering = ('-created_at',)
     readonly_fields = ('id', 'created_at')
+    date_hierarchy = 'created_at'
+    list_per_page = 25
     
     fieldsets = (
         (None, {

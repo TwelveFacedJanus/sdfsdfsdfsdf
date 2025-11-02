@@ -67,9 +67,8 @@ class UserSignInSerializer(serializers.Serializer):
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['fio', 'nickname', 'date_of_birth', 'country', 'language', 'base64_image', 'notification_email', 'notification_push', 'notification_inherit']
+        fields = ['nickname', 'date_of_birth', 'country', 'language', 'base64_image', 'notification_email', 'notification_push', 'notification_inherit']
         extra_kwargs = {
-            'fio': {'required': False},
             'nickname': {'required': False},
             'date_of_birth': {'required': False},
             'country': {'required': False},

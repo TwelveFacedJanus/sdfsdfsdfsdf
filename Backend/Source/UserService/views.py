@@ -278,7 +278,12 @@ def update_profile(request):
     
     elif request.method == 'PATCH':
         # Обновление профиля пользователя
+        print(f"Profile update request data: {request.data}")
         serializer = UserUpdateSerializer(request.user, data=request.data, partial=True)
+        
+        print(f"Serializer is_valid: {serializer.is_valid()}")
+        if not serializer.is_valid():
+            print(f"Validation errors: {serializer.errors}")
         
         if serializer.is_valid():
             try:
@@ -288,6 +293,9 @@ def update_profile(request):
                     'user': UserSerializer(request.user).data
                 }, status=status.HTTP_200_OK)
             except Exception as e:
+                print(f"Save error: {e}")
+                import traceback
+                print(traceback.format_exc())
                 return Response({
                     'error': 'Ошибка при обновлении профиля',
                     'details': str(e)

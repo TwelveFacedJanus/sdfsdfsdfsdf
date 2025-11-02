@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.html import format_html
 from .models import UserFavourite
 
 
@@ -9,6 +10,8 @@ class UserFavouriteAdmin(admin.ModelAdmin):
     search_fields = ('subscriber__fio', 'subscriber__email', 'subscribed_to__fio', 'subscribed_to__email')
     ordering = ('-created_at',)
     readonly_fields = ('id', 'created_at')
+    date_hierarchy = 'created_at'
+    list_per_page = 25
     
     fieldsets = (
         (None, {
