@@ -24,12 +24,22 @@ class UserSignUpSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         validated_data.pop('password_confirm')
-        user = User.objects.create_user(
-            username=validated_data['email'],  # Используем email как username
-            email=validated_data['email'],
-            fio=validated_data['fio'],
-            password=validated_data['password']
-        )
+        password = validated_data.pop('password')
+        
+        # Устанавливаем username равным email
+        validated_data['username'] = validated_data.get('email', validated_data.get('username'))
+        
+        user = User(**validated_data)
+        user.set_password(password)
+        user.save()
+        
+        # Генерируем токен для подтверждения email
+        try:
+            user.generate_email_verification_token()
+        except Exception as e:
+            # Если метод не работает, логируем ошибку
+            print(f"Ошибка генерации токена: {e}")
+        
         return user
 
 
@@ -75,4 +85,5 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'fio', 'email', 'nickname', 'date_of_birth', 'country', 'language', 'rating', 'base64_image',
-                 'is_subscribed', 'subscribe_expired', 'notification_email', 'notification_push', 'notification_inherit']
+                 'is_subscribed', 'subscribe_expired', 'notification_email', 'notification_push', 'notification_inherit',
+                 'is_email_verified']

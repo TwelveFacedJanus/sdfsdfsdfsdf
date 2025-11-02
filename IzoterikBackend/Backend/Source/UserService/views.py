@@ -6,6 +6,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView, TokenBlacklistView
 from .serializers import UserSignUpSerializer, UserSignInSerializer, UserSerializer, UserUpdateSerializer
 from .models import User
+from django.core.mail import send_mail
+from django.conf import settings
+
+# Импорт stripe будет в функции для лучшей обработки ошибок
 
 
 @api_view(['POST'])
@@ -17,11 +21,49 @@ def sign_up(request):
     """
     serializer = UserSignUpSerializer(data=request.data)
     
+    # Логируем данные запроса для отладки
+    print(f"Registration data: {request.data}")
+    print(f"Serializer valid: {serializer.is_valid()}")
+    if not serializer.is_valid():
+        print(f"Validation errors: {serializer.errors}")
+    
     if serializer.is_valid():
         try:
             user = serializer.save()
+            
+            # Отправляем email с подтверждением
+            verification_url = f"http://localhost:3000/verify-email?token={user.email_verification_token}"
+            subject = 'Подтверждение регистрации'
+            message = f"""
+            Добро пожаловать, {user.fio}!
+            
+            Спасибо за регистрацию на нашей платформе.
+            
+            Пожалуйста, подтвердите ваш email, перейдя по следующей ссылке:
+            {verification_url}
+            
+            Ссылка действительна в течение 24 часов.
+            
+            Если вы не регистрировались на нашей платформе, просто проигнорируйте это письмо.
+            
+            С уважением,
+            Команда Ezoterika
+            """
+            
+            try:
+                send_mail(
+                    subject,
+                    message,
+                    settings.EMAIL_HOST_USER,
+                    [user.email],
+                    fail_silently=True,
+                )
+            except Exception as email_error:
+                # Логируем ошибку, но не блокируем регистрацию
+                print(f"Ошибка отправки email: {email_error}")
+            
             return Response({
-                'message': 'Пользователь успешно зарегистрирован',
+                'message': 'Пользователь успешно зарегистрирован. Проверьте почту для подтверждения email.',
                 'user': UserSerializer(user).data
             }, status=status.HTTP_201_CREATED)
         except Exception as e:
@@ -65,6 +107,158 @@ def sign_in(request):
         'error': 'Ошибка авторизации',
         'details': serializer.errors
     }, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def verify_email(request):
+    """
+    Подтверждение email пользователя
+    POST /api/user/verify-email/
+    """
+    token = request.data.get('token')
+    
+    if not token:
+        return Response({
+            'error': 'Токен не предоставлен'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        user = User.objects.get(email_verification_token=token)
+        
+        if user.verify_email_token(token):
+            return Response({
+                'message': 'Email успешно подтвержден',
+                'user': UserSerializer(user).data
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'error': 'Токен недействителен или истек срок действия'
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+    except User.DoesNotExist:
+        return Response({
+            'error': 'Пользователь с таким токеном не найден'
+        }, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({
+            'error': 'Ошибка при подтверждении email',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def reset_password(request):
+    """
+    Запрос на сброс пароля
+    POST /api/user/reset-password/
+    """
+    email = request.data.get('email')
+    
+    # Логируем данные запроса
+    print(f"Password reset request for email: {email}")
+    
+    if not email:
+        return Response({
+            'error': 'Email не предоставлен'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        user = User.objects.get(email=email)
+        print(f"User found: {user.email}")
+        
+        # Генерируем токен для сброса пароля
+        token = user.generate_password_reset_token()
+        
+        # Отправляем email с ссылкой на сброс пароля
+        reset_url = f"http://localhost:3000/reset-password?token={token}"
+        subject = 'Сброс пароля'
+        message = f"""
+        Здравствуйте, {user.fio}!
+        
+        Вы запросили сброс пароля для вашего аккаунта.
+        
+        Для сброса пароля перейдите по следующей ссылке:
+        {reset_url}
+        
+        Ссылка действительна в течение 1 часа.
+        
+        Если вы не запрашивали сброс пароля, просто проигнорируйте это письмо.
+        
+        С уважением,
+        Команда Ezoterika
+        """
+        
+        try:
+            send_mail(
+                subject,
+                message,
+                settings.EMAIL_HOST_USER,
+                [user.email],
+                fail_silently=True,
+            )
+        except Exception as email_error:
+            print(f"Ошибка отправки email: {email_error}")
+        
+        return Response({
+            'message': 'Ссылка для сброса пароля отправлена на email'
+        }, status=status.HTTP_200_OK)
+        
+    except User.DoesNotExist:
+        # Для безопасности не сообщаем, что пользователь не найден
+        return Response({
+            'message': 'Если такой email существует, на него была отправлена ссылка для сброса пароля'
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({
+            'error': 'Ошибка при отправке запроса на сброс пароля',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def confirm_password_reset(request):
+    """
+    Подтверждение сброса пароля
+    POST /api/user/confirm-password-reset/
+    """
+    token = request.data.get('token')
+    new_password = request.data.get('password')
+    
+    if not token or not new_password:
+        return Response({
+            'error': 'Токен и новый пароль обязательны'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        user = User.objects.get(password_reset_token=token)
+        
+        if user.verify_password_reset_token(token):
+            # Устанавливаем новый пароль
+            user.set_password(new_password)
+            user.password_reset_token = None
+            user.password_reset_token_expires = None
+            user.save()
+            
+            return Response({
+                'message': 'Пароль успешно изменен'
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'error': 'Токен недействителен или истек срок действия'
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+    except User.DoesNotExist:
+        return Response({
+            'error': 'Пользователь с таким токеном не найден'
+        }, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({
+            'error': 'Ошибка при сбросе пароля',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET', 'PATCH'])
@@ -408,5 +602,95 @@ def get_top_users(request):
     except Exception as e:
         return Response({
             'error': 'Ошибка при получении топ пользователей',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_checkout_session(request):
+    """
+    Создание Stripe Checkout сессии для оплаты подписки
+    POST /api/user/create-checkout-session/
+    """
+    price_id = request.data.get('priceId')
+    
+    print(f"Creating checkout session for priceId: {price_id}, user: {request.user.email}")
+    
+    if not price_id:
+        return Response({
+            'error': 'Price ID не предоставлен'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Проверяем, что Stripe установлен
+    try:
+        import stripe
+    except ImportError as e:
+        print(f"Stripe import error: {e}")
+        return Response({
+            'error': 'Stripe не установлен. Установите: pip install stripe',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    # Маппинг priceId на реальные Stripe Price IDs
+    # Для тестирования можно использовать test mode price IDs из Stripe Dashboard
+    price_mapping = {
+        'price_basic': 'price_YourBasicPriceId',  # Замените на реальный Price ID
+        'price_premium': 'price_YourPremiumPriceId',  # Замените на реальный Price ID
+        'price_premium_plus': 'price_YourPremiumPlusPriceId',  # Замените на реальный Price ID
+    }
+    
+    stripe_price_id = price_mapping.get(price_id, price_id)
+    
+    # Проверяем, что ключ Stripe настроен
+    if not settings.STRIPE_SECRET_KEY or settings.STRIPE_SECRET_KEY == 'sk_test_51YourSecretKeyHere':
+        print("Stripe secret key not configured")
+        return Response({
+            'error': 'Stripe ключи не настроены. Настройте STRIPE_SECRET_KEY в settings.py'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    try:
+        # Инициализируем Stripe
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        print(f"Stripe API key set, creating session for price: {stripe_price_id}")
+        
+        # Создаем Checkout Session
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[
+                {
+                    'price': stripe_price_id,
+                    'quantity': 1,
+                },
+            ],
+            mode='subscription',
+            success_url='http://localhost:3000/payment/success?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url='http://localhost:3000/payment/cancel',
+            customer_email=request.user.email,
+            metadata={
+                'user_id': str(request.user.id),
+                'price_id': price_id,
+            },
+        )
+        
+        print(f"Checkout session created: {checkout_session.id}")
+        
+        return Response({
+            'sessionId': checkout_session.id,
+            'url': checkout_session.url
+        }, status=status.HTTP_200_OK)
+        
+    except stripe.error.StripeError as e:
+        print(f"Stripe error: {e}")
+        return Response({
+            'error': f'Ошибка Stripe: {str(e)}',
+            'details': str(e)
+        }, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        print(f"General error creating checkout session: {e}")
+        import traceback
+        traceback.print_exc()
+        return Response({
+            'error': 'Ошибка при создании сессии оплаты',
             'details': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

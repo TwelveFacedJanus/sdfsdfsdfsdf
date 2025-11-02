@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { registerUser, setUserData, type RegistrationData, type ApiResponse } from '@/lib/api';
-import SuccessModal from '@/components/SuccessModal';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -14,7 +13,6 @@ export default function SignUpPage() {
   const [agreement, setAgreement] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,8 +46,8 @@ export default function SignUpPage() {
         setUserData(result.user);
       }
       
-      // Успешная регистрация
-      setShowSuccessModal(true);
+      // Перенаправляем на страницу подтверждения email
+      router.push('/email-sent');
       
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -64,15 +62,6 @@ export default function SignUpPage() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleSuccessModalClose = () => {
-    setShowSuccessModal(false);
-  };
-
-  const handleSuccessModalContinue = () => {
-    setShowSuccessModal(false);
-    router.push('/signIn');
   };
 
   const handleGoogleAuth = () => {
@@ -241,13 +230,6 @@ export default function SignUpPage() {
           </div>
         </form>
       </div>
-
-      {/* Модальное окно успешной регистрации */}
-      <SuccessModal
-        isOpen={showSuccessModal}
-        onClose={handleSuccessModalClose}
-        onContinue={handleSuccessModalContinue}
-      />
     </div>
   );
 }

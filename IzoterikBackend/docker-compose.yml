@@ -21,8 +21,8 @@ services:
     container_name: ezoterika_backend
     ports:
       - "8000:8000"
-    #volumes:
-    #  - ./Backend:/app
+    volumes:
+      - ./Backend:/app
     restart: unless-stopped
     depends_on:
       - postgres
@@ -36,8 +36,8 @@ services:
     container_name: ezoterika_frontend
     ports:
       - "3000:3000"
-    #volumes:
-    #  - ./Frontend/ezoterika:/app
+    volumes:
+      - ./Frontend/ezoterika:/app
     restart: unless-stopped
     networks:
       - ezoterika_network

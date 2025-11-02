@@ -213,3 +213,21 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.0.114', 'backend']
 
 # Disable APPEND_SLASH to allow URLs without trailing slashes for API calls
 APPEND_SLASH = False
+
+# Email Configuration
+# SMTP настройки для отправки реальных писем
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.yandex.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'twofaced-janus@yandex.ru'
+EMAIL_HOST_PASSWORD = 'zshgftfrtkniomwd'
+DEFAULT_FROM_EMAIL = 'twofaced-janus@yandex.ru'
+
+# Для разработки можно использовать консольный backend (закомментируйте SMTP выше и раскомментируйте ниже):
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Stripe Configuration
+STRIPE_SECRET_KEY = 'sk_test_51YourSecretKeyHere'  # Замените на ваш секретный ключ Stripe
+STRIPE_PUBLISHABLE_KEY = 'pk_test_51YourPublishableKeyHere'  # Замените на ваш публичный ключ Stripe
+STRIPE_WEBHOOK_SECRET = 'whsec_YourWebhookSecretHere'  # Замените на ваш webhook secret (опционально)

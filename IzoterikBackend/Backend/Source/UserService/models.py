@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 import uuid
+from django.utils import timezone
+from datetime import timedelta
+import secrets
 
 
 class User(AbstractUser):
@@ -23,6 +26,15 @@ class User(AbstractUser):
     notification_push = models.BooleanField(default=True, verbose_name="Push уведомления")
     notification_inherit = models.BooleanField(default=True, verbose_name="Наследовать настройки уведомлений")
     
+    # Email confirmation
+    is_email_verified = models.BooleanField(default=False, verbose_name="Email подтвержден")
+    email_verification_token = models.CharField(max_length=64, null=True, blank=True, verbose_name="Токен подтверждения email")
+    email_verification_token_expires = models.DateTimeField(null=True, blank=True, verbose_name="Срок действия токена")
+    
+    # Password reset
+    password_reset_token = models.CharField(max_length=64, null=True, blank=True, verbose_name="Токен сброса пароля")
+    password_reset_token_expires = models.DateTimeField(null=True, blank=True, verbose_name="Срок действия токена сброса")
+    
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'fio']
     
@@ -32,3 +44,35 @@ class User(AbstractUser):
     
     def __str__(self):
         return f"{self.fio} ({self.email})"
+    
+    def generate_email_verification_token(self):
+        """Генерация токена для подтверждения email"""
+        self.email_verification_token = secrets.token_urlsafe(32)
+        self.email_verification_token_expires = timezone.now() + timedelta(days=1)
+        self.save()
+        return self.email_verification_token
+    
+    def verify_email_token(self, token):
+        """Проверка токена подтверждения email"""
+        if self.email_verification_token == token and self.email_verification_token_expires:
+            if timezone.now() <= self.email_verification_token_expires:
+                self.is_email_verified = True
+                self.email_verification_token = None
+                self.email_verification_token_expires = None
+                self.save()
+                return True
+        return False
+    
+    def generate_password_reset_token(self):
+        """Генерация токена для сброса пароля"""
+        self.password_reset_token = secrets.token_urlsafe(32)
+        self.password_reset_token_expires = timezone.now() + timedelta(hours=1)
+        self.save()
+        return self.password_reset_token
+    
+    def verify_password_reset_token(self, token):
+        """Проверка токена сброса пароля"""
+        if self.password_reset_token == token and self.password_reset_token_expires:
+            if timezone.now() <= self.password_reset_token_expires:
+                return True
+        return False

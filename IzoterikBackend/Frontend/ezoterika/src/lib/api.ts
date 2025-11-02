@@ -7,7 +7,7 @@ const getApiBaseUrl = () => {
     return '';
   }
   // Server-side: use backend URL
-  return 'http://localhost:8000';
+  return 'http://backend:8000';
 };
 
 export const API_BASE_URL = getApiBaseUrl();
@@ -17,6 +17,7 @@ export const API_ENDPOINTS = {
   USER: {
     SIGN_UP: `${API_BASE_URL}/api/user/sign-up/`,
     SIGN_IN: `${API_BASE_URL}/api/user/sign-in/`,
+    VERIFY_EMAIL: `${API_BASE_URL}/api/user/verify-email/`,
     PROFILE: `${API_BASE_URL}/api/user/profile/`,
     HISTORY: `${API_BASE_URL}/api/user/history/`,
     SETTINGS: `${API_BASE_URL}/api/user/settings/`,
@@ -137,6 +138,13 @@ export const loginUser = async (data: LoginData): Promise<ApiResponse> => {
   return apiRequest<ApiResponse>(API_ENDPOINTS.USER.SIGN_IN, {
     method: 'POST',
     body: JSON.stringify(data),
+  });
+};
+
+export const verifyEmail = async (token: string): Promise<ApiResponse> => {
+  return apiRequest<ApiResponse>(API_ENDPOINTS.USER.VERIFY_EMAIL, {
+    method: 'POST',
+    body: JSON.stringify({ token }),
   });
 };
 

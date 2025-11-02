@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { getStoredTokens, getUserData, updateUserProfile, convertFileToBase64, getUserProfile, getUserHistory, getUserSettings, updateUserSettings, changePassword, getPaymentHistory } from '@/lib/api';
 import Header from '@/components/Header';
 
@@ -14,10 +14,13 @@ interface UserProfile {
   country?: string;
   language?: string;
   base64_image?: string;
+  is_subscribed?: boolean;
+  subscribe_expired?: string;
 }
 
-export default function ProfilePage() {
+function ProfileContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(true);
   const [activeSection, setActiveSection] = useState('data');
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -58,8 +61,14 @@ export default function ProfilePage() {
       return;
     }
 
+    // Читаем query параметр section для установки активной секции
+    const section = searchParams.get('section');
+    if (section && ['data', 'history', 'favorites', 'settings'].includes(section)) {
+      setActiveSection(section);
+    }
+
     loadUserProfile();
-  }, [router]);
+  }, [router, searchParams]);
 
   useEffect(() => {
     if (activeSection === 'history') {
@@ -371,6 +380,10 @@ export default function ProfilePage() {
       console.error('Error changing password:', error);
       alert('Ошибка при смене пароля');
     }
+  };
+
+  const handlePaySubscription = () => {
+    router.push('/payment');
   };
 
   const handleOpenPaymentHistory = async () => {
@@ -797,19 +810,33 @@ export default function ProfilePage() {
                         <label className="block text-white text-sm font-medium mb-3">
                           Управление подпиской
                         </label>
-                        <div className="space-y-4">
-                          <div className="text-gray-300">
-                            Активно до {formatDate(settingsData.subscription.expiresAt)}
+                        {userProfile?.is_subscribed ? (
+                          <div className="space-y-4">
+                            <div className="text-gray-300">
+                              Активно до {userProfile.subscribe_expired ? formatDate(userProfile.subscribe_expired) : 'не указано'}
+                            </div>
+                            <div className="flex space-x-3">
+                              <button className="px-4 py-2 bg-[#2A2A2A] text-white rounded-lg hover:bg-[#3A3A3A] transition-colors">
+                                Сменить план
+                              </button>
+                              <button className="px-4 py-2 bg-[#2A2A2A] text-white rounded-lg hover:bg-[#3A3A3A] transition-colors">
+                                Отменить подписку
+                              </button>
+                            </div>
                           </div>
-                          <div className="flex space-x-3">
-                            <button className="px-4 py-2 bg-[#2A2A2A] text-white rounded-lg hover:bg-[#3A3A3A] transition-colors">
-                              Сменить план
-                            </button>
-                            <button className="px-4 py-2 bg-[#2A2A2A] text-white rounded-lg hover:bg-[#3A3A3A] transition-colors">
-                              Отменить подписку
+                        ) : (
+                          <div className="space-y-4">
+                            <div className="text-gray-300">
+                              У вас нет активной подписки
+                            </div>
+                            <button 
+                              onClick={handlePaySubscription}
+                              className="px-6 py-3 bg-[#8A63D2] text-white rounded-lg hover:bg-[#7A53C2] transition-colors"
+                            >
+                              Оплатить
                             </button>
                           </div>
-                        </div>
+                        )}
                       </div>
 
                       {/* Безопасность */}
@@ -839,27 +866,29 @@ export default function ProfilePage() {
                       </div>
 
                       {/* Статус абонемента */}
-                      <div>
-                        <label className="block text-white text-sm font-medium mb-3">
-                          Статус абонемента
-                        </label>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                          <span className="text-white">Активен</span>
-                        </div>
-                        
-                        {/* Информационное сообщение */}
-                        <div className="mt-4 p-4 bg-[#2A2A2A] border border-gray-600 rounded-lg">
-                          <div className="flex items-start space-x-3">
-                            <div className="w-6 h-6 bg-gray-600 rounded-full flex items-center justify-center shrink-0 mt-0.5">
-                              <span className="text-white text-xs font-bold">i</span>
-                            </div>
-                            <div className="text-gray-300 text-sm">
-                              Уведомления о предстоящем продлении или списании
+                      {userProfile?.is_subscribed && (
+                        <div>
+                          <label className="block text-white text-sm font-medium mb-3">
+                            Статус абонемента
+                          </label>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                            <span className="text-white">Активен</span>
+                          </div>
+                          
+                          {/* Информационное сообщение */}
+                          <div className="mt-4 p-4 bg-[#2A2A2A] border border-gray-600 rounded-lg">
+                            <div className="flex items-start space-x-3">
+                              <div className="w-6 h-6 bg-gray-600 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                                <span className="text-white text-xs font-bold">i</span>
+                              </div>
+                              <div className="text-gray-300 text-sm">
+                                Уведомления о предстоящем продлении или списании
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
+                      )}
 
                       {/* Кнопки действий */}
                       <div className="flex justify-end space-x-4 pt-6">
@@ -886,5 +915,23 @@ export default function ProfilePage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={
+      <>
+        <Header activePage="profile" />
+        <div 
+          className="min-h-screen flex items-center justify-center"
+          style={{ backgroundColor: '#090F1B' }}
+        >
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#8A63D2]"></div>
+        </div>
+      </>
+    }>
+      <ProfileContent />
+    </Suspense>
   );
 }
