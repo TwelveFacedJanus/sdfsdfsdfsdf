@@ -26,10 +26,9 @@ COPY . .
 # Expose port
 EXPOSE 8000
 
-# Copy and set permissions for startup script
-COPY start.sh /app/start.sh
+# Set permissions for startup script
 RUN chmod +x /app/start.sh
 
 # Run the application
 WORKDIR /app
-CMD ["/app/start.sh"]
+CMD ["/bin/bash", "/app/start.sh"]
