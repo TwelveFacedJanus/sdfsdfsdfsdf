@@ -18,6 +18,12 @@ class Post(models.Model):
         ('other', 'Другое'),
     ]
     
+    ACCESSIBILITY_CHOICES = [
+        ('subscribers', 'Подписчикам'),
+        ('all', 'Всем'),
+        ('my_subscribers', 'Всем моим подписчикам'),
+    ]
+    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255, verbose_name="Заголовок")
     preview_text = models.TextField(verbose_name="Превью текст")
@@ -46,6 +52,12 @@ class Post(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
     is_published = models.BooleanField(default=True, verbose_name="Опубликован")
+    accessibility = models.CharField(
+        max_length=20,
+        choices=ACCESSIBILITY_CHOICES,
+        default='all',
+        verbose_name="Кому доступен для просмотра"
+    )
     
     class Meta:
         verbose_name = "Пост"

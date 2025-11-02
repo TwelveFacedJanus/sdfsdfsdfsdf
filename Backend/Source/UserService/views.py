@@ -33,7 +33,7 @@ def sign_up(request):
             user = serializer.save()
             
             # Отправляем email с подтверждением
-            verification_url = f"http://103.228.171.39:3000/verify-email?token={user.email_verification_token}"
+            verification_url = f"http://localhost:3000/verify-email?token={user.email_verification_token}"
             subject = 'Подтверждение регистрации'
             message = f"""
             Добро пожаловать, {user.fio}!

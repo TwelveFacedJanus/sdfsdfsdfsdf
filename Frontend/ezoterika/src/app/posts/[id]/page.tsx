@@ -62,12 +62,108 @@ export default function PostDetailPage() {
 
   const parseContent = (contentString: string): ContentBlock[] => {
     try {
+      // Пытаемся распарсить как JSON (старый формат)
       const parsed = JSON.parse(contentString);
       return Array.isArray(parsed) ? parsed : [];
     } catch (error) {
-      console.error('Error parsing content:', error);
-      return [];
+      // Если не JSON, значит это markdown - парсим его
+      return parseMarkdownToBlocks(contentString);
     }
+  };
+
+  const parseMarkdownToBlocks = (markdown: string): ContentBlock[] => {
+    const blocks: ContentBlock[] = [];
+    if (!markdown || !markdown.trim()) return blocks;
+
+    // Разделяем по разделителю "---"
+    const sections = markdown.split(/\n*---\s*\n*/).filter(s => s.trim());
+    
+    sections.forEach(section => {
+      const lines = section.split('\n').filter(l => l.trim());
+      let currentBlock: ContentBlock | null = null;
+      
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        
+        // Проверяем на заголовок H2
+        if (line.startsWith('## ')) {
+          if (currentBlock && currentBlock.type === 'section') {
+            blocks.push(currentBlock);
+          }
+          currentBlock = {
+            type: 'section',
+            title: line.replace('## ', '').trim(),
+            description: ''
+          };
+        }
+        // Проверяем на изображение в markdown
+        else if (line.startsWith('![')) {
+          const imageMatch = line.match(/!\[([^\]]*)\]\(([^)]+)\)/);
+          if (imageMatch) {
+            if (!currentBlock) {
+              currentBlock = {
+                type: 'section',
+                title: '',
+                description: ''
+              };
+            }
+            currentBlock.image = imageMatch[2];
+            currentBlock.image_caption = imageMatch[1];
+            if (currentBlock.type !== 'image') {
+              currentBlock.type = 'section';
+            }
+          }
+        }
+        // Проверяем на ссылку (аудио)
+        else if (line.startsWith('[🎵')) {
+          const linkMatch = line.match(/\[🎵\s*([^\]]+)\]\(([^)]+)\)/);
+          if (linkMatch) {
+            if (!currentBlock || currentBlock.type !== 'pdf') {
+              if (currentBlock) blocks.push(currentBlock);
+              currentBlock = {
+                type: 'pdf',
+                title: linkMatch[1],
+                description: '',
+                files: [{
+                  name: linkMatch[1],
+                  size: 0,
+                  type: 'audio/mpeg'
+                }]
+              };
+            } else {
+              currentBlock.files = currentBlock.files || [];
+              currentBlock.files.push({
+                name: linkMatch[1],
+                size: 0,
+                type: 'audio/mpeg'
+              });
+            }
+          }
+        }
+        // Обычный текст
+        else if (line.trim()) {
+          if (!currentBlock) {
+            currentBlock = {
+              type: 'text',
+              title: '',
+              description: line
+            };
+          } else {
+            if (currentBlock.description) {
+              currentBlock.description += '\n' + line;
+            } else {
+              currentBlock.description = line;
+            }
+          }
+        }
+      }
+      
+      if (currentBlock) {
+        blocks.push(currentBlock);
+      }
+    });
+    
+    return blocks;
   };
 
   const loadPost = async () => {
@@ -112,9 +208,25 @@ export default function PostDetailPage() {
               {block.title}
             </h2>
             {block.description && (
-              <p className="text-lg text-gray-300 mb-6">
-                {block.description}
-              </p>
+              <div className="text-lg text-gray-300 mb-6 whitespace-pre-wrap leading-relaxed">
+                {block.description.split('\n').map((line, idx) => {
+                  // Обработка markdown форматирования
+                  if (line.trim().startsWith('**') && line.trim().endsWith('**')) {
+                    const text = line.trim().replace(/\*\*/g, '');
+                    return <p key={idx} className="font-bold mb-2">{text}</p>;
+                  } else if (line.trim().startsWith('*') && line.trim().endsWith('*') && !line.trim().startsWith('**')) {
+                    const text = line.trim().replace(/\*/g, '');
+                    return <p key={idx} className="italic mb-2">{text}</p>;
+                  } else if (line.trim().startsWith('<u>') && line.trim().endsWith('</u>')) {
+                    const text = line.trim().replace(/<\/?u>/g, '');
+                    return <p key={idx} className="underline mb-2">{text}</p>;
+                  } else if (line.trim().startsWith('- ')) {
+                    return <p key={idx} className="mb-1 ml-4">• {line.trim().substring(2)}</p>;
+                  } else {
+                    return <p key={idx} className="mb-2">{line || '\u00A0'}</p>;
+                  }
+                })}
+              </div>
             )}
             {block.image && (
               <div className="mb-6">
@@ -142,9 +254,25 @@ export default function PostDetailPage() {
               </h3>
             )}
             <div className="prose prose-invert max-w-none">
-              <p className="text-white leading-relaxed whitespace-pre-wrap text-lg">
-                {block.description}
-              </p>
+              <div className="text-white leading-relaxed whitespace-pre-wrap text-lg">
+                {block.description.split('\n').map((line, idx) => {
+                  // Обработка markdown форматирования
+                  if (line.trim().startsWith('**') && line.trim().endsWith('**')) {
+                    const text = line.trim().replace(/\*\*/g, '');
+                    return <p key={idx} className="font-bold mb-2">{text}</p>;
+                  } else if (line.trim().startsWith('*') && line.trim().endsWith('*') && !line.trim().startsWith('**')) {
+                    const text = line.trim().replace(/\*/g, '');
+                    return <p key={idx} className="italic mb-2">{text}</p>;
+                  } else if (line.trim().startsWith('<u>') && line.trim().endsWith('</u>')) {
+                    const text = line.trim().replace(/<\/?u>/g, '');
+                    return <p key={idx} className="underline mb-2">{text}</p>;
+                  } else if (line.trim().startsWith('- ')) {
+                    return <p key={idx} className="mb-1 ml-4">• {line.trim().substring(2)}</p>;
+                  } else {
+                    return <p key={idx} className="mb-2">{line || '\u00A0'}</p>;
+                  }
+                })}
+              </div>
             </div>
             {block.image && (
               <div className="mt-6">

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { getStoredTokens, getPostDetail, updateContent } from '@/lib/api';
 import Header from '@/components/Header';
+import RichTextEditor from '@/components/RichTextEditor';
 
 interface ContentBlock {
   id: string;
@@ -13,6 +14,8 @@ interface ContentBlock {
   image?: string;
   imageCaption?: string;
   image_caption?: string;
+  imageDescription?: string;
+  image_description?: string;
   files?: File[];
 }
 
@@ -65,6 +68,7 @@ export default function EditContentPage() {
               id: index.toString(),
               type: block.type || 'section',
               imageCaption: block.imageCaption || block.image_caption || '',
+              imageDescription: block.imageDescription || block.image_description || '',
             }));
             setBlocks(blocksWithIds);
           }
@@ -77,7 +81,8 @@ export default function EditContentPage() {
             title: '',
             description: '',
             image: '',
-            imageCaption: ''
+            imageCaption: '',
+            imageDescription: ''
           }]);
         }
       } else {
@@ -88,7 +93,8 @@ export default function EditContentPage() {
           title: '',
           description: '',
           image: '',
-          imageCaption: ''
+          imageCaption: '',
+          imageDescription: ''
         }]);
       }
     } catch (error) {
@@ -259,6 +265,7 @@ export default function EditContentPage() {
           description: block.description,
           image: block.image,
           image_caption: block.imageCaption || block.image_caption,
+          image_description: block.imageDescription || block.image_description,
           files: block.files?.map(file => ({
             name: file.name,
             size: file.size,
@@ -299,7 +306,7 @@ export default function EditContentPage() {
     return (
       <>
         <Header activePage="contents" />
-        <div className="min-h-screen bg-[#282440] flex items-center justify-center">
+        <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#090F1B' }}>
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#8A63D2]"></div>
         </div>
       </>
@@ -310,30 +317,25 @@ export default function EditContentPage() {
     <>
       <Header activePage="contents" />
       <div 
-        className="min-h-screen bg-cover bg-center bg-fixed"
+        className="min-h-screen"
         style={{ 
-          backgroundImage: "url('/BG.png')",
-          backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed'
+          backgroundColor: '#090F1B'
         }}
       >
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
-            <div className="bg-[#1A1826] rounded-lg p-8">
-              <div className="flex items-center justify-between mb-8">
-                <h1 className="text-2xl font-bold text-white">
-                  Редактирование контента
-                </h1>
-                <div className="flex items-center space-x-4">
+            <div className="bg-[#00051B] rounded-[32px] p-8 border border-white/10">
+              <div className="flex justify-end items-center mb-8">
+                <div className="flex gap-2 items-center">
                   {hasUnsavedChanges && (
-                    <div className="flex items-center space-x-2 text-yellow-400 text-sm">
+                    <div className="flex items-center space-x-2 text-yellow-400 text-sm mr-4">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                       </svg>
                       <span>Есть несохраненные изменения</span>
                     </div>
                   )}
-                  <div className={`text-sm ${dataSize > 100000 ? 'text-red-400' : 'text-gray-400'}`}>
+                  <div className={`text-sm ${dataSize > 100000 ? 'text-red-400' : 'text-gray-400'} mr-4`}>
                     Размер данных: {(dataSize / 1024).toFixed(1)} KB
                     {dataSize > 100000 && <span className="ml-2">⚠️ Превышен лимит</span>}
                   </div>
@@ -341,7 +343,7 @@ export default function EditContentPage() {
               </div>
 
               {/* Заголовок и превью текст */}
-              <div className="bg-[#2A2A2A] rounded-lg p-6 mb-6">
+              <div className="bg-[#2A2A2A] rounded-[32px] p-8 border border-white/10 mb-[10px]">
                 <h2 className="text-white font-medium mb-4">Основная информация</h2>
                 <div className="space-y-4">
                   <div>
@@ -372,7 +374,7 @@ export default function EditContentPage() {
               </div>
 
               {/* Настройки контента */}
-              <div className="bg-[#2A2A2A] rounded-lg p-6 mb-6">
+              <div className="bg-[#2A2A2A] rounded-[32px] p-8 border border-white/10 mb-[10px]">
                 <h2 className="text-white font-medium mb-4">Настройки контента</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -410,38 +412,39 @@ export default function EditContentPage() {
               </div>
 
               {/* Блоки контента */}
-              <div className="space-y-6">
+              <div className="space-y-[10px]">
                 {blocks.map((block, index) => (
-                  <div key={block.id} className="bg-[#2A2A2A] rounded-lg p-6">
+                  <div key={block.id} className="bg-[#2A2A2A] rounded-[32px] p-8 border border-white/10">
                     {/* Заголовок блока с кнопками управления */}
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-white font-medium">
-                        Блок {index + 1}
-                      </h3>
-                      <div className="flex space-x-2">
+                    <div className="flex justify-start items-center mb-4">
+                      <div className="flex gap-2 items-center">
                         <button
                           onClick={() => moveBlock(block.id, 'up')}
                           disabled={index === 0}
-                          className="p-2 text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="Переместить вверх"
+                          className="w-8 h-8 rounded-full bg-[#1A1826] border border-gray-600 flex items-center justify-center text-white hover:bg-[#2A2A2A] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
-                          ↑
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                          </svg>
                         </button>
                         <button
                           onClick={() => moveBlock(block.id, 'down')}
                           disabled={index === blocks.length - 1}
-                          className="p-2 text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="Переместить вниз"
+                          className="w-8 h-8 rounded-full bg-[#1A1826] border border-gray-600 flex items-center justify-center text-white hover:bg-[#2A2A2A] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
-                          ↓
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
                         </button>
                         <button
                           onClick={() => removeBlock(block.id)}
                           disabled={blocks.length === 1}
-                          className="p-2 text-red-400 hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="Удалить"
+                          className="px-3 py-1 rounded-lg bg-[#1A1826] border border-gray-600 flex items-center gap-2 text-white hover:bg-[#2A2A2A] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
-                          ✕
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          <span className="text-sm">Удалить</span>
                         </button>
                       </div>
                     </div>
@@ -469,11 +472,9 @@ export default function EditContentPage() {
                         <label className="block text-white text-sm font-medium mb-2">
                           Заголовок
                         </label>
-                        <input
-                          type="text"
+                        <RichTextEditor
                           value={block.title || ''}
-                          onChange={(e) => updateBlock(block.id, 'title', e.target.value)}
-                          className="w-full px-4 py-3 bg-[#1A1826] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#8A63D2] transition-colors"
+                          onChange={(value) => updateBlock(block.id, 'title', value)}
                           placeholder="Введите заголовок"
                         />
                       </div>
@@ -484,11 +485,9 @@ export default function EditContentPage() {
                       <label className="block text-white text-sm font-medium mb-2">
                         Описание
                       </label>
-                      <textarea
+                      <RichTextEditor
                         value={block.description || ''}
-                        onChange={(e) => updateBlock(block.id, 'description', e.target.value)}
-                        className="w-full px-4 py-3 bg-[#1A1826] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#8A63D2] transition-colors resize-none"
-                        rows={3}
+                        onChange={(value) => updateBlock(block.id, 'description', value)}
                         placeholder="Введите описание"
                       />
                     </div>
@@ -507,18 +506,11 @@ export default function EditContentPage() {
                           }}
                         >
                           {block.image ? (
-                            <>
-                              <img 
-                                src={block.image} 
-                                alt="Uploaded" 
-                                className="w-full h-full object-cover rounded-lg"
-                              />
-                              <div className="absolute top-2 right-2">
-                                <span className="bg-black bg-opacity-70 text-white px-3 py-1 rounded text-sm">
-                                  Нажмите для загрузки
-                                </span>
-                              </div>
-                            </>
+                            <img 
+                              src={block.image} 
+                              alt="Uploaded" 
+                              className="w-full h-full object-cover rounded-lg"
+                            />
                           ) : (
                             <div className="text-center">
                               <svg className="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -556,6 +548,21 @@ export default function EditContentPage() {
                           onChange={(e) => updateBlock(block.id, 'imageCaption', e.target.value)}
                           className="w-full px-4 py-3 bg-[#1A1826] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#8A63D2] transition-colors"
                           placeholder="Введите описание фото"
+                        />
+                      </div>
+                    )}
+
+                    {/* Описание после изображения (для Section) */}
+                    {block.type === 'section' && block.image && (
+                      <div className="mb-4">
+                        <label className="block text-white text-sm font-medium mb-2">
+                          Описание
+                        </label>
+                        <RichTextEditor
+                          defaultHeading="P1"
+                          value={block.imageDescription || ''}
+                          onChange={(value) => updateBlock(block.id, 'imageDescription', value)}
+                          placeholder="Введите описание"
                         />
                       </div>
                     )}

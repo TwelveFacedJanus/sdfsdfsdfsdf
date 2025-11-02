@@ -8,19 +8,20 @@ class PostSerializer(serializers.ModelSerializer):
     author_rating = serializers.IntegerField(source='author.rating', read_only=True)
     author_avatar = serializers.CharField(source='author.base64_image', read_only=True)
     category_display = serializers.CharField(source='get_category_display', read_only=True)
+    accessibility_display = serializers.CharField(source='get_accessibility_display', read_only=True)
     
     class Meta:
         model = Post
         fields = ['id', 'title', 'preview_text', 'content', 'preview_image_link', 'rating', 'comments_count', 'views_count', 
                  'category', 'category_display', 'author', 'author_fio', 'author_nickname', 
-                 'author_rating', 'author_avatar', 'created_at', 'updated_at', 'is_published']
+                 'author_rating', 'author_avatar', 'created_at', 'updated_at', 'is_published', 'accessibility', 'accessibility_display']
         read_only_fields = ['id', 'comments_count', 'views_count', 'created_at', 'updated_at']
 
 
 class PostCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
-        fields = ['title', 'preview_text', 'content', 'preview_image_link', 'rating', 'category', 'is_published']
+        fields = ['title', 'preview_text', 'content', 'preview_image_link', 'rating', 'category', 'is_published', 'accessibility']
     
     def create(self, validated_data):
         # Автоматически устанавливаем автора из контекста запроса
@@ -55,7 +56,7 @@ class PostListSerializer(serializers.ModelSerializer):
 class PostUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
-        fields = ['title', 'preview_text', 'content', 'preview_image_link', 'rating', 'category', 'is_published']
+        fields = ['title', 'preview_text', 'content', 'preview_image_link', 'rating', 'category', 'is_published', 'accessibility']
         extra_kwargs = {
             'title': {'required': False},
             'preview_text': {'required': False},
@@ -63,7 +64,8 @@ class PostUpdateSerializer(serializers.ModelSerializer):
             'preview_image_link': {'required': False},
             'rating': {'required': False},
             'category': {'required': False},
-            'is_published': {'required': False}
+            'is_published': {'required': False},
+            'accessibility': {'required': False}
         }
 
 
