@@ -214,6 +214,13 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.0.114', 'backend']
 # Disable APPEND_SLASH to allow URLs without trailing slashes for API calls
 APPEND_SLASH = False
 
+# CSRF Configuration - exempt API endpoints
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://192.168.0.114:3000',
+]
+
 # Email Configuration
 # SMTP настройки для отправки реальных писем
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

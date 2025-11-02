@@ -308,19 +308,29 @@ class CustomTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
         try:
             return super().post(request, *args, **kwargs)
-        except Exception as e:
-            # Логируем ошибку для отладки
+        except User.DoesNotExist as e:
+            # Пользователь из токена не найден
             import traceback
-            print(f"Token refresh error: {str(e)}")
+            print(f"Token refresh error: User.DoesNotExist - {str(e)}")
+            print(traceback.format_exc())
+            return Response({
+                'detail': 'Токен обновления недействителен или истек. Пожалуйста, войдите снова.'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        except (InvalidToken, TokenError) as e:
+            # Невалидный токен
+            import traceback
+            print(f"Token refresh error: InvalidToken/TokenError - {str(e)}")
+            print(traceback.format_exc())
+            return Response({
+                'detail': str(e) if hasattr(e, '__str__') else 'Токен обновления недействителен.'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            # Логируем любые другие ошибки для отладки
+            import traceback
+            print(f"Token refresh error: {type(e).__name__} - {str(e)}")
             print(traceback.format_exc())
             
-            # Возвращаем понятную ошибку
-            if isinstance(e, (InvalidToken, TokenError)):
-                return Response({
-                    'detail': str(e)
-                }, status=status.HTTP_401_UNAUTHORIZED)
-            
-            # Для других ошибок возвращаем общее сообщение
+            # Возвращаем общее сообщение
             return Response({
                 'detail': 'Токен обновления недействителен или истек. Пожалуйста, войдите снова.'
             }, status=status.HTTP_401_UNAUTHORIZED)
