@@ -187,9 +187,9 @@ export default function SignInPage() {
             </a>
           </div>
         </form>
-        {/* Хеш проекта */}
+        {/* Хеши проектов */}
         <div 
-          className="text-center mt-4"
+          className="text-center mt-4 space-y-1"
           style={{ 
             opacity: 0.15,
             color: '#ffffff',
@@ -197,9 +197,16 @@ export default function SignInPage() {
             fontFamily: 'monospace'
           }}
         >
-          {typeof window !== 'undefined' && process.env.NEXT_PUBLIC_GIT_HASH 
-            ? process.env.NEXT_PUBLIC_GIT_HASH 
-            : '71888676087b166ae93e9b4b98f287d4f37666c3'}
+          <div>
+            frontend: {typeof window !== 'undefined' && process.env.NEXT_PUBLIC_GIT_HASH 
+              ? process.env.NEXT_PUBLIC_GIT_HASH 
+              : '71888676087b166ae93e9b4b98f287d4f37666c3'}
+          </div>
+          <div>
+            backend: {typeof window !== 'undefined' && process.env.NEXT_PUBLIC_BACKEND_GIT_HASH 
+              ? process.env.NEXT_PUBLIC_BACKEND_GIT_HASH 
+              : 'default_backend_hash'}
+          </div>
         </div>
     </div>
   );

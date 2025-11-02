@@ -120,7 +120,31 @@ export const apiRequest = async <T = any>(
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.error || 'API request failed');
+    // Извлекаем детальную информацию об ошибке
+    let errorMessage = 'API request failed';
+    
+    if (data.detail) {
+      errorMessage = typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail);
+    } else if (data.error) {
+      errorMessage = typeof data.error === 'string' ? data.error : JSON.stringify(data.error);
+    } else if (data.message) {
+      errorMessage = typeof data.message === 'string' ? data.message : JSON.stringify(data.message);
+    } else if (data.non_field_errors && Array.isArray(data.non_field_errors)) {
+      errorMessage = data.non_field_errors.join(', ');
+    } else if (typeof data === 'string') {
+      errorMessage = data;
+    }
+    
+    // Проверяем наличие полевых ошибок
+    if (data.email && Array.isArray(data.email)) {
+      errorMessage = `Email: ${data.email.join(', ')}`;
+    } else if (data.password && Array.isArray(data.password)) {
+      errorMessage = `Пароль: ${data.password.join(', ')}`;
+    } else if (data.fio && Array.isArray(data.fio)) {
+      errorMessage = `ФИО: ${data.fio.join(', ')}`;
+    }
+    
+    throw new Error(errorMessage);
   }
 
   return data;
