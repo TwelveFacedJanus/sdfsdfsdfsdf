@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { getStoredTokens, getPostDetail, updateContent } from '@/lib/api';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import RichTextEditor from '@/components/RichTextEditor';
 
 interface ContentBlock {
@@ -708,6 +709,7 @@ export default function EditContentPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </>
   );
 }

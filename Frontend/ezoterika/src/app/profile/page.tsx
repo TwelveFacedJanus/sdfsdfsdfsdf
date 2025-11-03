@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getStoredTokens, getUserData, updateUserProfile, convertFileToBase64, getUserProfile, getUserHistory, getUserSettings, updateUserSettings, changePassword, getPaymentHistory } from '@/lib/api';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 interface UserProfile {
   id: string;
@@ -914,6 +915,7 @@ function ProfileContent() {
           </div>
         </div>
       </div>
+      <Footer />
     </>
   );
 }

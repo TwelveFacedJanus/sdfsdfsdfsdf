@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { getStoredTokens, getPostDetail } from '@/lib/api';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import Comments from '@/components/Comments';
 
 interface ContentBlock {
@@ -566,6 +567,7 @@ export default function PostDetailPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </>
   );
 }

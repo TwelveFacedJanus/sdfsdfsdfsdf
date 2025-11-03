@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getStoredTokens, getPosts } from '@/lib/api';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import SearchBar from '@/components/SearchBar';
 import LeftSidebar from '@/components/LeftSidebar';
 import RightSidebar from '@/components/RightSidebar';
@@ -264,6 +265,7 @@ export default function ContentsPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </>
   );
 }
