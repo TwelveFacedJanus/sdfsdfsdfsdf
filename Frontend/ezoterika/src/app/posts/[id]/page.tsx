@@ -7,7 +7,7 @@ import Header from '@/components/Header';
 import Comments from '@/components/Comments';
 
 interface ContentBlock {
-  type: 'section' | 'text' | 'pdf';
+  type: 'section' | 'text' | 'pdf' | 'image' | 'audio';
   title: string;
   description: string;
   image?: string | null;
@@ -109,7 +109,8 @@ export default function PostDetailPage() {
             }
             currentBlock.image = imageMatch[2];
             currentBlock.image_caption = imageMatch[1];
-            if (currentBlock.type !== 'image') {
+            // Если блок еще не имеет типа, устанавливаем section
+            if (!currentBlock.type || currentBlock.type === 'text') {
               currentBlock.type = 'section';
             }
           }
@@ -292,16 +293,25 @@ export default function PostDetailPage() {
         );
 
       case 'pdf':
+      case 'audio':
         return (
           <div key={index} id={`block-${index}`} className="mb-8">
             <div className="bg-[#2A1F3D] rounded-lg p-6 border border-gray-600">
               <div className="flex items-center space-x-3 mb-4">
-                <svg className="w-8 h-8 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-                </svg>
+                {block.type === 'audio' ? (
+                  <svg className="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 18V5L21 3V16" />
+                    <circle cx="6" cy="18" r="3" stroke="currentColor" strokeWidth="2" fill="none" />
+                    <circle cx="18" cy="16" r="3" stroke="currentColor" strokeWidth="2" fill="none" />
+                  </svg>
+                ) : (
+                  <svg className="w-8 h-8 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                  </svg>
+                )}
                 <div>
                   <h3 className="text-lg font-semibold text-white">
-                    {block.title || 'PDF Документ'}
+                    {block.title || (block.type === 'audio' ? 'Аудио файлы' : 'PDF Документ')}
                   </h3>
                   {block.description && (
                     <p className="text-gray-300 text-sm">
@@ -315,19 +325,52 @@ export default function PostDetailPage() {
                   {block.files.map((file, fileIndex) => (
                     <div key={fileIndex} className="flex items-center justify-between bg-[#1A1826] rounded p-3">
                       <div className="flex items-center space-x-3">
-                        <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-                        </svg>
+                        {block.type === 'audio' ? (
+                          <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 18V5L21 3V16" />
+                            <circle cx="6" cy="18" r="3" stroke="currentColor" strokeWidth="2" fill="none" />
+                            <circle cx="18" cy="16" r="3" stroke="currentColor" strokeWidth="2" fill="none" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                          </svg>
+                        )}
                         <span className="text-white text-sm">{file.name}</span>
                       </div>
                       <span className="text-gray-400 text-xs">
-                        {(file.size / 1024 / 1024).toFixed(2)} MB
+                        {file.size > 0 ? `${(file.size / 1024 / 1024).toFixed(2)} MB` : 'Аудио файл'}
                       </span>
                     </div>
                   ))}
                 </div>
               )}
             </div>
+          </div>
+        );
+
+      case 'image':
+        return (
+          <div key={index} id={`block-${index}`} className="mb-8">
+            {block.image && (
+              <div className="mb-6">
+                <img 
+                  src={block.image} 
+                  alt={block.title || 'Изображение'}
+                  className="w-full h-64 object-cover rounded-lg"
+                />
+                {block.image_caption && (
+                  <p className="text-sm text-gray-400 mt-2 text-center">
+                    {block.image_caption}
+                  </p>
+                )}
+              </div>
+            )}
+            {block.title && (
+              <h3 className="text-2xl font-semibold text-white mb-4">
+                {block.title}
+              </h3>
+            )}
           </div>
         );
 
