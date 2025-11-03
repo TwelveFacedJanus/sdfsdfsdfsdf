@@ -731,7 +731,6 @@ export default function CreateContentPage() {
             {isSaving ? 'Сохранение...' : 'Сохранить'}
           </button>
         </div>
-        </div>
       </div>
       <Footer />
     </>

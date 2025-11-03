@@ -26,8 +26,6 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
     { id: 'plans', label: 'Планы для практиков', href: '/plans' },
   ];
 
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
   return (
     <header className="bg-[#171B27] border-b" style={{ borderBottomWidth: '1px', borderBottomColor: 'rgba(255, 255, 255, 0.05)' }}>
       <div className="max-w-[1920px] w-full mx-auto px-4 sm:px-6 lg:px-[50px]">
