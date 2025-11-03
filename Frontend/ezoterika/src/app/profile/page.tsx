@@ -488,7 +488,7 @@ function ProfileContent() {
               <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 lg:gap-8 w-full">
                 {/* Левая навигация */}
                 <div className="w-full lg:w-64 flex flex-row lg:flex-col overflow-x-auto lg:overflow-x-visible" style={{ minHeight: 'auto', gap: '8px' }}>
-                  <nav className="flex lg:flex-col space-x-2 lg:space-x-0 lg:space-y-2 mb-4 lg:mb-8">
+                  <nav className="flex lg:flex-col space-x-2 lg:space-x-0 lg:space-y-2 mb-0 lg:mb-8">
                     {navigationItems.map((item) => (
                       <button
                         key={item.id}
@@ -502,17 +502,16 @@ function ProfileContent() {
                         {item.label}
                       </button>
                     ))}
+                    <button
+                      onClick={handleLogout}
+                      className="whitespace-nowrap text-left py-2 lg:py-3 transition-colors text-sm lg:text-base text-white hover:text-gray-300 hover:bg-[#333333] px-3 lg:px-4 rounded-lg flex items-center lg:justify-start justify-center space-x-2 lg:mt-auto lg:pt-4"
+                    >
+                      <span>Выйти</span>
+                      <svg className="w-4 h-4 hidden lg:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
                   </nav>
-
-                  <button
-                    onClick={handleLogout}
-                    className="lg:w-full flex items-center justify-center lg:justify-start space-x-2 text-white hover:text-gray-300 transition-colors mt-auto pt-4 lg:pt-8 px-3 lg:px-0"
-                  >
-                    <span className="text-sm lg:text-base">Выйти</span>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
                 </div>
 
                 {/* Основной контент */}
