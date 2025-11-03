@@ -349,62 +349,58 @@ export default function CreateContentPage() {
         )}
         
         <div 
-          className="bg-[#00051B] rounded-[32px] border text-white"
+          className="bg-[#00051B] rounded-2xl sm:rounded-[32px] border text-white w-full p-4 sm:p-6 lg:p-8"
           style={{ 
-            width: '893px',
             borderWidth: '1px',
             borderColor: 'rgba(255, 255, 255, 0.1)',
-            padding: '32px',
             display: 'flex',
             flexDirection: 'column',
             gap: '10px'
           }}
         >
           {/* Control Buttons */}
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
             <div className="flex items-center gap-2">
               <button 
                 className="rounded-full flex items-center justify-center hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ 
-                  width: '48px',
-                  height: '48px',
+                  width: '40px',
+                  height: '40px',
                   backgroundColor: 'rgba(255, 255, 255, 0.05)' 
                 }}
                 onClick={() => moveBlock(block.id, 'up')}
                 disabled={!canMoveUp}
               >
-                <svg width="24" height="24" viewBox="0 0 12 12" fill="none">
+                <svg width="20" height="20" viewBox="0 0 12 12" fill="none">
                   <path d="M3 6L6 3L9 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </button>
               <button 
                 className="rounded-full flex items-center justify-center hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ 
-                  width: '48px',
-                  height: '48px',
+                  width: '40px',
+                  height: '40px',
                   backgroundColor: 'rgba(255, 255, 255, 0.05)' 
                 }}
                 onClick={() => moveBlock(block.id, 'down')}
                 disabled={!canMoveDown}
               >
-                <svg width="24" height="24" viewBox="0 0 12 12" fill="none">
+                <svg width="20" height="20" viewBox="0 0 12 12" fill="none">
                   <path d="M3 6L6 9L9 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </button>
             </div>
             <button 
-              className="rounded-lg flex items-center justify-center gap-2 hover:bg-white/10 transition-colors"
+              className="rounded-lg flex items-center justify-center gap-2 hover:bg-white/10 transition-colors px-3 py-2"
               style={{ 
-                width: '118px',
-                height: '48px',
                 backgroundColor: 'rgba(255, 255, 255, 0.05)' 
               }}
               onClick={() => removeBlock(block.id)}
             >
-              <svg width="24" height="24" viewBox="0 0 16 16" fill="none">
+              <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
                 <path d="M5.33333 4H10.6667M6.66667 4V3.33333C6.66667 2.89131 7.02448 2.53333 7.46667 2.53333H8.53333C8.97552 2.53333 9.33333 2.89131 9.33333 3.33333V4M3.33333 4H12.6667L12 13.3333H4L3.33333 4Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              <span className="text-sm font-medium text-white">Удалить</span>
+              <span className="text-xs sm:text-sm font-medium text-white hidden sm:inline">Удалить</span>
             </button>
           </div>
 
@@ -622,12 +618,14 @@ export default function CreateContentPage() {
     <>
       <Header activePage="contents" />
       <div 
-        className="min-h-screen flex flex-col items-center p-8"
+        className="min-h-screen flex flex-col items-center p-4 sm:p-6 lg:p-8"
         style={{ 
           backgroundColor: '#090F1B'
         }}
       >
-        {blocks.map((block, index) => renderBlock(block, index))}
+        <div className="w-full max-w-[893px]">
+          {blocks.map((block, index) => renderBlock(block, index))}
+        </div>
         
         {/* Add Block Button */}
         <div className="mt-8">
@@ -709,10 +707,10 @@ export default function CreateContentPage() {
         </div>
 
         {/* Save and Cancel Buttons */}
-        <div className="mt-8 flex items-center justify-center gap-4">
+        <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full px-4">
           <button
             onClick={handleCancel}
-            className="px-8 py-3 rounded-lg border text-white hover:bg-white/10 transition-colors"
+            className="w-full sm:w-auto px-6 sm:px-8 py-2 sm:py-3 rounded-lg border text-white hover:bg-white/10 transition-colors text-sm sm:text-base"
             style={{
               backgroundColor: 'rgba(255, 255, 255, 0.05)',
               borderColor: 'rgba(255, 255, 255, 0.1)'
@@ -724,7 +722,7 @@ export default function CreateContentPage() {
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="px-8 py-3 rounded-lg border text-white hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto px-6 sm:px-8 py-2 sm:py-3 rounded-lg border text-white hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
             style={{
               backgroundColor: isSaving ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.15)',
               borderColor: 'rgba(255, 255, 255, 0.2)'
@@ -732,6 +730,7 @@ export default function CreateContentPage() {
           >
             {isSaving ? 'Сохранение...' : 'Сохранить'}
           </button>
+        </div>
         </div>
       </div>
       <Footer />

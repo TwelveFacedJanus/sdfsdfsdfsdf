@@ -479,24 +479,24 @@ function ProfileContent() {
           backgroundColor: '#090F1B'
         }}
       >
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
           <div className="max-w-7xl mx-auto">
             {/* Заголовок */}
-            <h1 className="text-white mb-6" style={{ fontSize: '52px', fontWeight: 600, lineHeight: '120%', letterSpacing: '0%' }}>Профиль</h1>
+            <h1 className="text-white mb-4 sm:mb-6 text-2xl sm:text-3xl lg:text-5xl font-semibold sm:font-bold" style={{ lineHeight: '120%', letterSpacing: '0%' }}>Профиль</h1>
             
-            <div className="bg-[#1A1826] rounded-lg p-8" style={{ width: '886px' }}>
-              <div className="flex gap-8">
+            <div className="bg-[#1A1826] rounded-lg p-4 sm:p-6 lg:p-8 w-full max-w-[886px]">
+              <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
                 {/* Левая навигация */}
-                <div className="w-64 flex flex-col" style={{ minHeight: '600px' }}>
-                  <nav className="space-y-2 mb-8">
+                <div className="w-full lg:w-64 flex flex-row lg:flex-col overflow-x-auto lg:overflow-x-visible" style={{ minHeight: 'auto', gap: '8px' }}>
+                  <nav className="flex lg:flex-col space-x-2 lg:space-x-0 lg:space-y-2 mb-4 lg:mb-8">
                     {navigationItems.map((item) => (
                       <button
                         key={item.id}
                         onClick={() => setActiveSection(item.id)}
-                        className={`w-full text-left py-3 transition-colors ${
+                        className={`whitespace-nowrap text-left py-2 lg:py-3 transition-colors text-sm lg:text-base ${
                           activeSection === item.id
-                            ? 'bg-[#8A63D2] text-white px-4 rounded-lg'
-                            : 'text-gray-400 hover:bg-[#333333] px-4 rounded-lg'
+                            ? 'bg-[#8A63D2] text-white px-3 lg:px-4 rounded-lg'
+                            : 'text-gray-400 hover:bg-[#333333] px-3 lg:px-4 rounded-lg'
                         }`}
                       >
                         {item.label}
@@ -506,9 +506,9 @@ function ProfileContent() {
 
                   <button
                     onClick={handleLogout}
-                    className="w-full flex items-center space-x-2 text-white hover:text-gray-300 transition-colors mt-auto pt-8"
+                    className="lg:w-full flex items-center justify-center lg:justify-start space-x-2 text-white hover:text-gray-300 transition-colors mt-auto pt-4 lg:pt-8 px-3 lg:px-0"
                   >
-                    <span>Выйти</span>
+                    <span className="text-sm lg:text-base">Выйти</span>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
@@ -516,7 +516,7 @@ function ProfileContent() {
                 </div>
 
                 {/* Основной контент */}
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   {activeSection === 'data' && (
                     <div className="space-y-6">
                       {/* Аватар */}

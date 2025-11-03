@@ -468,12 +468,12 @@ export default function PostDetailPage() {
           backgroundAttachment: 'fixed'
         }}
       >
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
           <div className="max-w-7xl mx-auto">
             {/* Кнопка назад */}
             <button
               onClick={handleBackClick}
-              className="mb-8 inline-flex items-center space-x-2 px-4 py-2 bg-[#1A1826] border border-gray-600 rounded-lg text-gray-300 hover:text-white hover:border-gray-500 transition-colors"
+              className="mb-4 sm:mb-6 lg:mb-8 inline-flex items-center space-x-2 px-3 sm:px-4 py-2 bg-[#1A1826] border border-gray-600 rounded-lg text-gray-300 hover:text-white hover:border-gray-500 transition-colors text-sm sm:text-base"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -482,28 +482,28 @@ export default function PostDetailPage() {
             </button>
 
             {/* Двухколоночный макет */}
-            <div className="flex gap-8">
+            <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
               {/* Основной контент */}
-              <div className="flex-1">
-                <article className="bg-[#1A1826] rounded-lg p-8">
+              <div className="flex-1 min-w-0">
+                <article className="bg-[#1A1826] rounded-lg p-4 sm:p-6 lg:p-8">
                   {/* Заголовок */}
-                  <div className="mb-8">
-                    <h1 className="text-4xl font-bold text-white mb-4 leading-tight">
+                  <div className="mb-4 sm:mb-6 lg:mb-8">
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 sm:mb-4 leading-tight">
                       {post.title}
                     </h1>
-                    <p className="text-xl text-gray-300 mb-6">
+                    <p className="text-base sm:text-lg lg:text-xl text-gray-300 mb-4 sm:mb-6">
                       {post.preview_text}
                     </p>
                   </div>
 
                   {/* Главное изображение */}
-                  <div className="mb-8">
+                  <div className="mb-4 sm:mb-6 lg:mb-8">
                     <img 
                       src={post.preview_image_link || "/api/placeholder/800/400"} 
                       alt={post.title}
-                      className="w-full h-96 object-cover rounded-lg"
+                      className="w-full h-48 sm:h-64 lg:h-96 object-cover rounded-lg"
                     />
-                    <p className="text-sm text-gray-400 mt-2 text-center">
+                    <p className="text-xs sm:text-sm text-gray-400 mt-2 text-center">
                       Иллюстрация: {post.author_fio}
                     </p>
                   </div>
@@ -534,24 +534,24 @@ export default function PostDetailPage() {
               </div>
 
               {/* Боковая панель с содержанием */}
-              <div className="w-80">
-                <div className="bg-[#1A1826] rounded-lg p-6 sticky top-8">
-                  <h3 className="text-2xl font-bold text-white mb-6">
+              <div className="hidden lg:block lg:w-80">
+                <div className="bg-[#1A1826] rounded-lg p-4 lg:p-6 sticky top-8">
+                  <h3 className="text-xl lg:text-2xl font-bold text-white mb-4 lg:mb-6">
                     Содержание:
                   </h3>
-                  <nav className="space-y-3">
+                  <nav className="space-y-2 lg:space-y-3">
                     {contentBlocks.length > 0 ? (
                       contentBlocks.map((block, index) => (
                         <a 
                           key={index}
                           href={`#block-${index}`}
-                          className="block text-white hover:text-cyan-300 transition-colors text-sm"
+                          className="block text-white hover:text-cyan-300 transition-colors text-xs sm:text-sm"
                         >
                           {block.title || `${block.type} блок ${index + 1}`}
                         </a>
                       ))
                     ) : (
-                      <div className="text-gray-400 text-sm">
+                      <div className="text-gray-400 text-xs sm:text-sm">
                         Содержание недоступно
                       </div>
                     )}
@@ -561,7 +561,7 @@ export default function PostDetailPage() {
             </div>
 
             {/* Секция комментариев */}
-            <div className="mt-12">
+            <div className="mt-6 sm:mt-8 lg:mt-12">
               <Comments postId={postId} />
             </div>
           </div>

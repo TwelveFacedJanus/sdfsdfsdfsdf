@@ -11,6 +11,7 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userData, setUserData] = useState<any>(null);
 
   useEffect(() => {
@@ -25,21 +26,23 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
     { id: 'plans', label: 'Планы для практиков', href: '/plans' },
   ];
 
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
     <header className="bg-[#171B27] border-b" style={{ borderBottomWidth: '1px', borderBottomColor: 'rgba(255, 255, 255, 0.05)' }}>
-      <div className="max-w-[1920px] w-full mx-auto px-[50px]">
-        <div className="flex items-center h-[100px]">
+      <div className="max-w-[1920px] w-full mx-auto px-4 sm:px-6 lg:px-[50px]">
+        <div className="flex items-center h-16 md:h-[100px]">
           {/* Логотип */}
           <div className="shrink-0">
             <img 
               src="/logo.svg" 
               alt="Ezoterika Logo" 
-              className="h-12 w-auto"
+              className="h-8 md:h-12 w-auto"
             />
           </div>
 
-          {/* Навигация */}
-          <nav className="hidden md:flex space-x-8 h-full ml-[60px]">
+          {/* Навигация - десктоп */}
+          <nav className="hidden lg:flex space-x-8 h-full ml-[60px]">
             {navigationItems.map((item) => (
               <a
                 key={item.id}
@@ -65,7 +68,7 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
           </nav>
 
           {/* Правый блок - уведомления, язык, профиль */}
-          <div className="flex items-center ml-auto" style={{ gap: '32px' }}>
+          <div className="flex items-center ml-auto gap-2 sm:gap-4 md:gap-8">
             {/* Уведомления */}
             <div className="relative">
               <button 
@@ -145,8 +148,8 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
               )}
             </div>
 
-            {/* Выбор языка */}
-            <div className="relative">
+            {/* Выбор языка - скрыт на мобильных */}
+            <div className="relative hidden sm:block">
               <button
                 onClick={() => setIsLanguageOpen(!isLanguageOpen)}
                 className="flex items-center space-x-2 text-white hover:text-gray-300 transition-colors"
@@ -157,7 +160,7 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
                   <div className="w-full h-1/3 bg-blue-600"></div>
                   <div className="w-full h-1/3 bg-red-600"></div>
                 </div>
-                <span className="text-sm">RU</span>
+                <span className="text-sm hidden md:inline">RU</span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
@@ -182,7 +185,7 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
             <div className="relative">
               <button
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="flex items-center space-x-3 text-white hover:text-gray-300 transition-colors"
+                className="flex items-center space-x-2 md:space-x-3 text-white hover:text-gray-300 transition-colors"
               >
                 {/* Аватар */}
                 {userData?.base64_image ? (
@@ -198,10 +201,10 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
                     </svg>
                   </div>
                 )}
-                <span className="text-sm font-medium">
+                <span className="text-sm font-medium hidden md:inline">
                   {userData?.fio || 'Пользователь'}
                 </span>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
@@ -233,8 +236,44 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
                 </div>
               )}
             </div>
+
+            {/* Мобильное меню */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden text-white hover:text-gray-300 transition-colors ml-2"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {isMobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
           </div>
         </div>
+
+        {/* Мобильное меню навигации */}
+        {isMobileMenuOpen && (
+          <nav className="lg:hidden border-t border-gray-700 py-4">
+            <div className="flex flex-col space-y-2">
+              {navigationItems.map((item) => (
+                <a
+                  key={item.id}
+                  href={item.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`px-4 py-3 transition-colors ${
+                    activePage === item.id
+                      ? 'bg-[#333333] text-white'
+                      : 'text-white hover:bg-[#333333]'
+                  }`}
+                >
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          </nav>
+        )}
       </div>
     </header>
   );

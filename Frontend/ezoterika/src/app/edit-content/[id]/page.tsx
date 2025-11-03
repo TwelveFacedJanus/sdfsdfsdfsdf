@@ -323,20 +323,20 @@ export default function EditContentPage() {
           backgroundColor: '#090F1B'
         }}
       >
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
           <div className="max-w-4xl mx-auto">
-            <div className="bg-[#00051B] rounded-[32px] p-8 border border-white/10">
-              <div className="flex justify-end items-center mb-8">
-                <div className="flex gap-2 items-center">
+            <div className="bg-[#00051B] rounded-2xl sm:rounded-[32px] p-4 sm:p-6 lg:p-8 border border-white/10">
+              <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center mb-4 sm:mb-6 lg:mb-8 gap-2">
+                <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center w-full sm:w-auto">
                   {hasUnsavedChanges && (
-                    <div className="flex items-center space-x-2 text-yellow-400 text-sm mr-4">
+                    <div className="flex items-center space-x-2 text-yellow-400 text-xs sm:text-sm">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                       </svg>
                       <span>Есть несохраненные изменения</span>
                     </div>
                   )}
-                  <div className={`text-sm ${dataSize > 100000 ? 'text-red-400' : 'text-gray-400'} mr-4`}>
+                  <div className={`text-xs sm:text-sm ${dataSize > 100000 ? 'text-red-400' : 'text-gray-400'}`}>
                     Размер данных: {(dataSize / 1024).toFixed(1)} KB
                     {dataSize > 100000 && <span className="ml-2">⚠️ Превышен лимит</span>}
                   </div>
@@ -344,8 +344,8 @@ export default function EditContentPage() {
               </div>
 
               {/* Заголовок и превью текст */}
-              <div className="bg-[#2A2A2A] rounded-[32px] p-8 border border-white/10 mb-[10px]">
-                <h2 className="text-white font-medium mb-4">Основная информация</h2>
+              <div className="bg-[#2A2A2A] rounded-2xl sm:rounded-[32px] p-4 sm:p-6 lg:p-8 border border-white/10 mb-[10px]">
+                <h2 className="text-white font-medium mb-3 sm:mb-4 text-base sm:text-lg">Основная информация</h2>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-white text-sm font-medium mb-2">
@@ -375,8 +375,8 @@ export default function EditContentPage() {
               </div>
 
               {/* Настройки контента */}
-              <div className="bg-[#2A2A2A] rounded-[32px] p-8 border border-white/10 mb-[10px]">
-                <h2 className="text-white font-medium mb-4">Настройки контента</h2>
+              <div className="bg-[#2A2A2A] rounded-2xl sm:rounded-[32px] p-4 sm:p-6 lg:p-8 border border-white/10 mb-[10px]">
+                <h2 className="text-white font-medium mb-3 sm:mb-4 text-base sm:text-lg">Настройки контента</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-white text-sm font-medium mb-2">
@@ -415,7 +415,7 @@ export default function EditContentPage() {
               {/* Блоки контента */}
               <div className="space-y-[10px]">
                 {blocks.map((block, index) => (
-                  <div key={block.id} className="bg-[#2A2A2A] rounded-[32px] p-8 border border-white/10">
+                  <div key={block.id} className="bg-[#2A2A2A] rounded-2xl sm:rounded-[32px] p-4 sm:p-6 lg:p-8 border border-white/10">
                     {/* Заголовок блока с кнопками управления */}
                     <div className="flex justify-start items-center mb-4">
                       <div className="flex gap-2 items-center">
@@ -678,28 +678,28 @@ export default function EditContentPage() {
               </div>
 
               {/* Кнопки управления */}
-              <div className="flex justify-between items-center mt-8">
+              <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center mt-6 sm:mt-8 gap-4">
                 <button
                   onClick={addBlock}
-                  className="flex items-center space-x-2 px-6 py-3 bg-[#8A63D2] text-white rounded-lg hover:bg-[#7A53C2] transition-colors"
+                  className="flex items-center justify-center space-x-2 px-4 sm:px-6 py-2 sm:py-3 bg-[#8A63D2] text-white rounded-lg hover:bg-[#7A53C2] transition-colors text-sm sm:text-base"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
                   <span>+ Добавить блок</span>
                 </button>
 
-                <div className="flex space-x-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:space-x-4">
                   <button
                     onClick={handleCancel}
-                    className="px-6 py-3 bg-[#6B46C1] text-white rounded-lg hover:bg-[#5B3A9F] transition-colors"
+                    className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-[#6B46C1] text-white rounded-lg hover:bg-[#5B3A9F] transition-colors text-sm sm:text-base"
                   >
                     Отмена
                   </button>
                   <button
                     onClick={handleSave}
                     disabled={isSaving || dataSize > 100000}
-                    className="px-6 py-3 bg-[#8A63D2] text-white rounded-lg hover:bg-[#7A53C2] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-[#8A63D2] text-white rounded-lg hover:bg-[#7A53C2] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                   >
                     {isSaving ? 'Сохранение...' : 'Сохранить изменения'}
                   </button>

@@ -70,13 +70,12 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#282440] flex items-center justify-center p-2 sm:p-4 lg:p-6">
+    <div className="min-h-screen bg-[#282440] flex items-center justify-center p-4 sm:p-6 lg:p-8">
       <form 
         onSubmit={handleSubmit}
-        className="font-sans"
+        className="font-sans w-full max-w-[600px]"
         style={{
-          width: '600px',
-          padding: '40px',
+          padding: '24px',
           backgroundColor: '#0C1127',
           borderRadius: '12px',
           borderWidth: '1px',
@@ -84,7 +83,7 @@ export default function SignInPage() {
           boxShadow: '0px 0px 30px 0px rgba(0, 0, 0, 0.15)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '24px'
+          gap: '20px'
         }}
       >
           {/* Заголовок */}
@@ -136,7 +135,7 @@ export default function SignInPage() {
           </button>
 
           {/* Кнопки социальных сетей */}
-          <div className="flex flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <button
               type="button"
               onClick={handleGoogleAuth}
@@ -170,7 +169,7 @@ export default function SignInPage() {
           </div>
 
           {/* Ссылки */}
-          <div className="flex flex-row justify-between text-sm">
+          <div className="flex flex-col sm:flex-row justify-between gap-2 sm:gap-0 text-xs sm:text-sm">
             <a 
               href="/signUp" 
               className="hover:opacity-80 transition-opacity text-center"
