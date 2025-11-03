@@ -479,13 +479,13 @@ function ProfileContent() {
           backgroundColor: '#090F1B'
         }}
       >
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-          <div className="max-w-7xl mx-auto">
+        <div className="w-full max-w-full mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6 lg:py-8">
+          <div className="max-w-7xl mx-auto w-full">
             {/* Заголовок */}
             <h1 className="text-white mb-4 sm:mb-6 text-2xl sm:text-3xl lg:text-5xl font-semibold sm:font-bold" style={{ lineHeight: '120%', letterSpacing: '0%' }}>Профиль</h1>
             
             <div className="bg-[#1A1826] rounded-lg p-4 sm:p-6 lg:p-8 w-full max-w-[886px]">
-              <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
+              <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 lg:gap-8 w-full">
                 {/* Левая навигация */}
                 <div className="w-full lg:w-64 flex flex-row lg:flex-col overflow-x-auto lg:overflow-x-visible" style={{ minHeight: 'auto', gap: '8px' }}>
                   <nav className="flex lg:flex-col space-x-2 lg:space-x-0 lg:space-y-2 mb-4 lg:mb-8">
@@ -518,35 +518,35 @@ function ProfileContent() {
                 {/* Основной контент */}
                 <div className="flex-1 min-w-0">
                   {activeSection === 'data' && (
-                    <div className="space-y-6">
+                    <div className="space-y-4 sm:space-y-6">
                       {/* Аватар */}
-                      <div className="flex items-start space-x-4">
-                        <div className="flex-1">
+                      <div className="flex flex-col sm:flex-row items-start gap-4">
+                        <div className="flex-1 w-full">
                           <label className="block text-white text-sm font-medium mb-2">
                             Аватар
                           </label>
                           <p className="text-gray-400 text-sm">
-                            Нажмите на картинку чтобы обновить<br />или удалить аватарку
+                            Нажмите на картинку чтобы обновить<br className="hidden sm:block" />или удалить аватарку
                           </p>
                         </div>
-                        <div className="w-24 h-24 relative">
+                        <div className="w-20 h-20 sm:w-24 sm:h-24 relative flex-shrink-0">
                           {userProfile?.base64_image ? (
                             <img 
                               src={userProfile.base64_image} 
                               alt="Аватар"
-                              className={`w-24 h-24 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity ${
+                              className={`w-full h-full rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity ${
                                 isUploadingAvatar ? 'opacity-50' : ''
                               }`}
                               onClick={handleAvatarClick}
                             />
                           ) : (
                             <div 
-                              className={`w-24 h-24 rounded-full bg-gray-600 flex items-center justify-center cursor-pointer hover:bg-gray-500 transition-colors ${
+                              className={`w-full h-full rounded-full bg-gray-600 flex items-center justify-center cursor-pointer hover:bg-gray-500 transition-colors ${
                                 isUploadingAvatar ? 'opacity-50' : ''
                               }`}
                               onClick={handleAvatarClick}
                             >
-                              <svg className="w-12 h-12 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-10 h-10 sm:w-12 sm:h-12 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                               </svg>
                             </div>
@@ -666,17 +666,17 @@ function ProfileContent() {
                   )}
 
                   {activeSection === 'history' && (
-                    <div className="space-y-6">
+                    <div className="space-y-4 sm:space-y-6">
                       {/* Фильтры */}
-                      <div className="flex gap-4">
-                        <div className="flex-1">
+                      <div className="flex flex-col sm:flex-row gap-4 w-full">
+                        <div className="flex-1 w-full min-w-0">
                           <label className="block text-white text-sm font-medium mb-2">
                             Выберите категорию
                           </label>
                           <select
                             value={historyFilters.category}
                             onChange={(e) => handleFilterChange('category', e.target.value)}
-                            className="w-full px-4 py-3 bg-[#2A2A2A] border border-gray-600 rounded-lg text-white focus:outline-none focus:border-[#8A63D2] transition-colors appearance-none cursor-pointer"
+                            className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-[#2A2A2A] border border-gray-600 rounded-lg text-white focus:outline-none focus:border-[#8A63D2] transition-colors appearance-none cursor-pointer text-sm sm:text-base"
                           >
                             <option value="">Все категории</option>
                             <option value="subscription">Подписки</option>
@@ -687,54 +687,54 @@ function ProfileContent() {
                             <option value="favorites">Избранное</option>
                           </select>
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 w-full min-w-0">
                           <label className="block text-white text-sm font-medium mb-2">
                             Период
                           </label>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 items-center">
                             <input
                               type="date"
                               value={historyFilters.dateFrom}
                               onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
-                              className="flex-1 px-4 py-3 bg-[#2A2A2A] border border-gray-600 rounded-lg text-white focus:outline-none focus:border-[#8A63D2] transition-colors"
+                              className="flex-1 min-w-0 px-2 sm:px-4 py-2 sm:py-3 bg-[#2A2A2A] border border-gray-600 rounded-lg text-white focus:outline-none focus:border-[#8A63D2] transition-colors text-sm sm:text-base"
                             />
-                            <span className="text-white self-center">-</span>
+                            <span className="text-white text-sm sm:text-base flex-shrink-0">-</span>
                             <input
                               type="date"
                               value={historyFilters.dateTo}
                               onChange={(e) => handleFilterChange('dateTo', e.target.value)}
-                              className="flex-1 px-4 py-3 bg-[#2A2A2A] border border-gray-600 rounded-lg text-white focus:outline-none focus:border-[#8A63D2] transition-colors"
+                              className="flex-1 min-w-0 px-2 sm:px-4 py-2 sm:py-3 bg-[#2A2A2A] border border-gray-600 rounded-lg text-white focus:outline-none focus:border-[#8A63D2] transition-colors text-sm sm:text-base"
                             />
                           </div>
                         </div>
                       </div>
 
                       {/* Список истории */}
-                      <div className="space-y-4">
+                      <div className="space-y-3 sm:space-y-4">
                         {isLoadingHistory ? (
                           <div className="space-y-3">
                             {[...Array(4)].map((_, i) => (
-                              <div key={i} className="flex justify-between items-center py-3 border-b border-gray-700 animate-pulse">
-                                <div className="h-4 bg-gray-600 rounded w-3/4"></div>
-                                <div className="h-4 bg-gray-600 rounded w-1/4"></div>
+                              <div key={i} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 py-3 border-b border-gray-700 animate-pulse">
+                                <div className="h-4 bg-gray-600 rounded w-full sm:w-3/4"></div>
+                                <div className="h-4 bg-gray-600 rounded w-1/2 sm:w-1/4"></div>
                               </div>
                             ))}
                           </div>
                         ) : historyItems.length > 0 ? (
                           <>
-                            <div className="text-sm text-gray-400 mb-2">
+                            <div className="text-xs sm:text-sm text-gray-400 mb-2">
                               Загружено {historyItems.length} записей из API
                             </div>
                             {historyItems.map((item) => (
-                              <div key={item.id} className="flex justify-between items-center py-3 border-b border-gray-700">
-                                <span className="text-white">{item.description}</span>
-                                <span className="text-gray-400 text-sm">{formatDate(item.date)}</span>
+                              <div key={item.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 py-3 border-b border-gray-700">
+                                <span className="text-white text-sm sm:text-base break-words flex-1 min-w-0">{item.description}</span>
+                                <span className="text-gray-400 text-xs sm:text-sm whitespace-nowrap flex-shrink-0">{formatDate(item.date)}</span>
                               </div>
                             ))}
                           </>
                         ) : (
-                          <div className="text-center py-12">
-                            <div className="text-gray-400 text-lg">
+                          <div className="text-center py-8 sm:py-12">
+                            <div className="text-gray-400 text-base sm:text-lg">
                               История активности пуста
                             </div>
                           </div>
