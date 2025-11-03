@@ -9,6 +9,8 @@ from .serializers import UserSignUpSerializer, UserSignInSerializer, UserSeriali
 from .models import User
 from django.core.mail import send_mail
 from django.conf import settings
+import requests
+import json
 
 # Импорт stripe будет в функции для лучшей обработки ошибок
 
@@ -108,6 +110,107 @@ def sign_in(request):
         'error': 'Ошибка авторизации',
         'details': serializer.errors
     }, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def google_auth(request):
+    """
+    Авторизация через Google OAuth
+    POST /api/user/google-auth/
+    """
+    credential = request.data.get('credential')
+    
+    if not credential:
+        return Response({
+            'error': 'Google credential не предоставлен'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        # Верифицируем токен Google через Google API
+        # В реальном приложении нужно использовать библиотеку google-auth
+        # Для упрощения используем прямой запрос к Google API
+        google_verify_url = 'https://oauth2.googleapis.com/tokeninfo?id_token=' + credential
+        
+        response = requests.get(google_verify_url, timeout=10)
+        
+        if response.status_code != 200:
+            return Response({
+                'error': 'Неверный Google токен'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        google_user_data = response.json()
+        
+        # Извлекаем данные пользователя
+        email = google_user_data.get('email')
+        first_name = google_user_data.get('given_name', '')
+        last_name = google_user_data.get('family_name', '')
+        fio = f"{first_name} {last_name}".strip() or google_user_data.get('name', 'Google User')
+        google_id = google_user_data.get('sub')
+        
+        if not email:
+            return Response({
+                'error': 'Email не найден в данных Google'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Ищем или создаем пользователя
+        try:
+            user = User.objects.get(email=email)
+            # Если пользователь существует, обновляем его данные
+            if not user.fio or user.fio == '':
+                user.fio = fio
+            if not user.username or user.username == '':
+                user.username = email.split('@')[0]
+            user.is_email_verified = True
+            user.save()
+        except User.DoesNotExist:
+            # Создаем нового пользователя
+            username = email.split('@')[0]
+            # Проверяем уникальность username
+            base_username = username
+            counter = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}{counter}"
+                counter += 1
+            
+            user = User.objects.create_user(
+                email=email,
+                username=username,
+                fio=fio,
+                is_email_verified=True,
+                is_active=True
+            )
+            # Устанавливаем пароль (для безопасности, но пользователь будет использовать Google OAuth)
+            user.set_unusable_password()
+            user.save()
+        
+        # Генерируем JWT токены
+        refresh = RefreshToken.for_user(user)
+        access_token = refresh.access_token
+        
+        return Response({
+            'message': 'Успешная авторизация через Google',
+            'user': UserSerializer(user).data,
+            'tokens': {
+                'access': str(access_token),
+                'refresh': str(refresh)
+            }
+        }, status=status.HTTP_200_OK)
+        
+    except requests.RequestException as e:
+        print(f"Google token verification error: {e}")
+        return Response({
+            'error': 'Ошибка при верификации Google токена',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    except Exception as e:
+        print(f"Google auth error: {e}")
+        import traceback
+        traceback.print_exc()
+        return Response({
+            'error': 'Ошибка при авторизации через Google',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])

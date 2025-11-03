@@ -17,6 +17,7 @@ export const API_ENDPOINTS = {
   USER: {
     SIGN_UP: `${API_BASE_URL}/api/user/sign-up/`,
     SIGN_IN: `${API_BASE_URL}/api/user/sign-in/`,
+    GOOGLE_AUTH: `${API_BASE_URL}/api/user/google-auth/`,
     VERIFY_EMAIL: `${API_BASE_URL}/api/user/verify-email/`,
     PROFILE: `${API_BASE_URL}/api/user/profile/`,
     HISTORY: `${API_BASE_URL}/api/user/history/`,
@@ -160,6 +161,17 @@ export const registerUser = async (data: RegistrationData): Promise<ApiResponse>
 
 export const loginUser = async (data: LoginData): Promise<ApiResponse> => {
   return apiRequest<ApiResponse>(API_ENDPOINTS.USER.SIGN_IN, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+};
+
+export interface GoogleAuthData {
+  credential: string;
+}
+
+export const googleAuth = async (data: GoogleAuthData): Promise<ApiResponse> => {
+  return apiRequest<ApiResponse>(API_ENDPOINTS.USER.GOOGLE_AUTH, {
     method: 'POST',
     body: JSON.stringify(data),
   });
