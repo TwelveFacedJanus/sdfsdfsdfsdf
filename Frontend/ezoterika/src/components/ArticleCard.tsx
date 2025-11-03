@@ -40,25 +40,24 @@ export default function ArticleCard({
   };
   return (
     <article 
-      className="rounded-[32px] border mb-[10px] transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
+      className="rounded-2xl sm:rounded-[32px] border mb-[10px] transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl w-full p-4 sm:p-6 lg:p-8"
       style={{ 
         backgroundColor: '#00051B',
-        padding: '32px',
         borderWidth: '1px',
         borderColor: 'rgba(255, 255, 255, 0.1)',
         boxShadow: '0px 0px 120px 0px rgba(255, 255, 255, 0.1)'
       }}
     >
       {/* Заголовок и мета-информация */}
-      <div className="flex justify-between items-start mb-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start mb-3 sm:mb-4 gap-2 sm:gap-0">
         <h2 
-          className="text-xl font-bold text-white flex-1 cursor-pointer hover:text-[#8A63D2] transition-colors"
+          className="text-base sm:text-lg lg:text-xl font-bold text-white flex-1 cursor-pointer hover:text-[#8A63D2] transition-colors"
           onClick={handleClick}
         >
           {title}
         </h2>
         {category && (
-          <span className="ml-4 px-3 py-1 bg-[#8A63D2] text-white text-sm rounded-full">
+          <span className="ml-0 sm:ml-4 px-2 sm:px-3 py-1 bg-[#8A63D2] text-white text-xs sm:text-sm rounded-full whitespace-nowrap">
             {category}
           </span>
         )}
@@ -66,7 +65,7 @@ export default function ArticleCard({
       
       {/* Автор и дата */}
       {(author || createdAt) && (
-        <div className="flex items-center space-x-4 text-gray-400 text-sm mb-4">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-gray-400 text-xs sm:text-sm mb-3 sm:mb-4">
           {author && (
             <span className="flex items-center space-x-2">
               {authorAvatar ? (
@@ -94,19 +93,19 @@ export default function ArticleCard({
         </div>
       )}
       
-      <p className="text-gray-300 mb-4 leading-relaxed">
+      <p className="text-gray-300 mb-3 sm:mb-4 leading-relaxed text-sm sm:text-base">
         {description}
       </p>
       
-      <div className="mb-4">
+      <div className="mb-3 sm:mb-4">
         <img 
           src={image} 
           alt={title}
-          className="w-full h-48 object-cover rounded-lg"
+          className="w-full h-32 sm:h-40 lg:h-48 object-cover rounded-lg"
         />
       </div>
       
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
         <button 
           onClick={handleClick}
           className="text-white hover:text-[#8A63D2] transition-colors font-medium"

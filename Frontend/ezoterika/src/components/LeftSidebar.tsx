@@ -52,9 +52,8 @@ export default function LeftSidebar({ activeCategory = 'all', onCategoryChange }
   if (isLoading) {
     return (
       <div 
-        className="bg-[#1A1826] rounded-[32px] p-6 h-fit border"
+        className="bg-[#1A1826] rounded-2xl sm:rounded-[32px] p-4 sm:p-6 h-fit border w-full lg:w-[277px]"
         style={{ 
-          width: '277px',
           borderWidth: '1px',
           borderColor: 'rgba(255, 255, 255, 0.1)',
           boxShadow: '0px 0px 120px 0px rgba(255, 255, 255, 0.1)'
@@ -74,9 +73,8 @@ export default function LeftSidebar({ activeCategory = 'all', onCategoryChange }
 
   return (
     <div 
-      className="bg-[#00051B] rounded-[32px] p-6 h-fit border"
+      className="bg-[#00051B] rounded-2xl sm:rounded-[32px] p-4 sm:p-6 h-fit border w-full lg:w-[277px]"
       style={{ 
-        width: '277px',
         borderWidth: '1px',
         borderColor: 'rgba(255, 255, 255, 0.1)',
         boxShadow: '0px 0px 120px 0px rgba(255, 255, 255, 0.1)'

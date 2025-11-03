@@ -122,21 +122,21 @@ export default function ContentsPage() {
     <>
       <Header activePage="contents" />
       <div 
-        className="min-h-screen bg-cover bg-center bg-fixed"
+        className="min-h-screen bg-cover bg-center bg-fixed sm:bg-fixed"
         style={{ 
           backgroundImage: "url('/BG.png')",
           backgroundRepeat: 'no-repeat',
           backgroundAttachment: 'fixed'
         }}
       >
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        <div className="w-full max-w-full mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6 lg:py-8">
           {/* Поиск */}
           <SearchBar onSearch={handleSearch} />
           
           {/* Основной контент */}
-          <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+          <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 lg:gap-6 w-full">
             {/* Левая боковая панель */}
-            <div className="lg:w-auto w-full">
+            <div className="w-full lg:w-auto">
               <LeftSidebar 
                 activeCategory={activeCategory} 
                 onCategoryChange={handleCategoryChange}
@@ -144,7 +144,7 @@ export default function ContentsPage() {
             </div>
             
             {/* Центральная часть с статьями */}
-            <div className="flex-1 lg:max-w-[893px] w-full">
+            <div className="flex-1 w-full lg:max-w-[893px] min-w-0">
               {postsLoading ? (
                 <div className="space-y-6">
                   {[...Array(3)].map((_, i) => (

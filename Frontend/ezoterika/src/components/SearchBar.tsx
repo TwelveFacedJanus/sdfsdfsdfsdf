@@ -19,11 +19,12 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
   };
 
   return (
-    <div className="mb-8 mx-auto" style={{ width: '893px' }}>
+    <div className="mb-4 sm:mb-6 lg:mb-8 mx-auto w-full max-w-[893px]">
       <form onSubmit={handleSubmit} className="flex items-center justify-between rounded-[12px]" style={{ 
         backgroundColor: 'rgba(255, 255, 255, 0.05)',
-        padding: '16px 20px',
-        height: '52px',
+        padding: '12px 16px',
+        height: 'auto',
+        minHeight: '52px',
         gap: '4px'
       }}>
         <input
@@ -31,7 +32,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
           value={searchQuery}
           onChange={handleInputChange}
           placeholder="Поиск по авторам, ключевым словам и типу контента"
-          className="flex-1 bg-transparent text-white placeholder-gray-400 focus:outline-none transition-colors"
+          className="flex-1 bg-transparent text-white placeholder-gray-400 focus:outline-none transition-colors text-sm sm:text-base"
           style={{ fontSize: '14px' }}
         />
         <button
