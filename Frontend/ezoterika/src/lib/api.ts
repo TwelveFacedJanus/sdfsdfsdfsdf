@@ -119,7 +119,36 @@ export const apiRequest = async <T = any>(
     }
   }
 
-  const data = await response.json();
+  // Проверяем, есть ли контент для парсинга
+  let data: any;
+  const contentType = response.headers.get('content-type');
+  
+  try {
+    // Клонируем response для чтения текста, так как response можно прочитать только один раз
+    const responseClone = response.clone();
+    const text = await responseClone.text();
+    
+    if (contentType && contentType.includes('application/json')) {
+      if (text) {
+        data = JSON.parse(text);
+      } else {
+        data = {};
+      }
+    } else {
+      // Если ответ не JSON, используем текст как сообщение
+      data = text ? { message: text } : {};
+    }
+  } catch (parseError: any) {
+    console.error('JSON parse error:', parseError);
+    // Если не удалось распарсить, пытаемся прочитать текст из оригинального response
+    try {
+      const responseClone = response.clone();
+      const text = await responseClone.text();
+      data = { error: text || 'Ошибка при обработке ответа сервера' };
+    } catch {
+      data = { error: parseError.message || 'Ошибка при обработке ответа сервера' };
+    }
+  }
 
   if (!response.ok) {
     // Извлекаем детальную информацию об ошибке

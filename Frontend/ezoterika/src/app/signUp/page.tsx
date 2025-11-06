@@ -76,8 +76,22 @@ export default function SignUpPage() {
   };
 
   const handleGoogleCallback = async (response: any) => {
-    if (!response.credential) {
-      setError('Ошибка регистрации через Google');
+    if (!response || !response.credential) {
+      setError('Ошибка регистрации через Google: credential не получен');
+      return;
+    }
+
+    // Валидация формата credential (JWT токен)
+    const credential = String(response.credential).trim();
+    if (!credential) {
+      setError('Ошибка регистрации через Google: пустой credential');
+      return;
+    }
+
+    // Проверка формата JWT (три части, разделенные точками)
+    const jwtPattern = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*$/;
+    if (!jwtPattern.test(credential)) {
+      setError('Ошибка регистрации через Google: неверный формат токена');
       return;
     }
 
@@ -85,7 +99,7 @@ export default function SignUpPage() {
     setError('');
 
     try {
-      const result = await googleAuth({ credential: response.credential });
+      const result = await googleAuth({ credential });
       
       // Сохраняем токены в localStorage
       if (result.tokens) {
