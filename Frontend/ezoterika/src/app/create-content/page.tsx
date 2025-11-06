@@ -343,29 +343,34 @@ export default function CreateContentPage() {
     return (
       <div key={block.id}>
         {index > 0 && (
-          <div className="my-12">
+          <div className="my-6 sm:my-12">
             <div className="border-t" style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}></div>
           </div>
         )}
         
         <div 
-          className="bg-[#00051B] rounded-2xl sm:rounded-[32px] border text-white w-full p-4 sm:p-6 lg:p-8"
+          className="bg-[#00051B] rounded-2xl sm:rounded-[32px] border text-white w-full p-3 sm:p-6 lg:p-8 overflow-x-hidden"
           style={{ 
             borderWidth: '1px',
             borderColor: 'rgba(255, 255, 255, 0.1)',
             display: 'flex',
             flexDirection: 'column',
-            gap: '10px'
+            gap: '10px',
+            width: '100%',
+            maxWidth: '100%',
+            boxSizing: 'border-box'
           }}
         >
           {/* Control Buttons */}
-          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <button 
-                className="rounded-full flex items-center justify-center hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded-full flex items-center justify-center hover:bg-white/10 active:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
                 style={{ 
-                  width: '40px',
-                  height: '40px',
+                  width: '44px',
+                  height: '44px',
+                  minWidth: '44px',
+                  minHeight: '44px',
                   backgroundColor: 'rgba(255, 255, 255, 0.05)' 
                 }}
                 onClick={() => moveBlock(block.id, 'up')}
@@ -376,10 +381,12 @@ export default function CreateContentPage() {
                 </svg>
               </button>
               <button 
-                className="rounded-full flex items-center justify-center hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded-full flex items-center justify-center hover:bg-white/10 active:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
                 style={{ 
-                  width: '40px',
-                  height: '40px',
+                  width: '44px',
+                  height: '44px',
+                  minWidth: '44px',
+                  minHeight: '44px',
                   backgroundColor: 'rgba(255, 255, 255, 0.05)' 
                 }}
                 onClick={() => moveBlock(block.id, 'down')}
@@ -391,7 +398,7 @@ export default function CreateContentPage() {
               </button>
             </div>
             <button 
-              className="rounded-lg flex items-center justify-center gap-2 hover:bg-white/10 transition-colors px-3 py-2"
+              className="rounded-lg flex items-center justify-center gap-2 hover:bg-white/10 active:bg-white/20 transition-colors px-3 sm:px-4 py-2.5 sm:py-2 touch-manipulation min-h-[44px]"
               style={{ 
                 backgroundColor: 'rgba(255, 255, 255, 0.05)' 
               }}
@@ -407,11 +414,11 @@ export default function CreateContentPage() {
           {/* Block Type Selection */}
           <div className="mb-4">
             <div className="mb-2">
-              <span className="text-sm text-white/70">Выберите тип блока</span>
+              <span className="text-sm sm:text-base text-white/70">Выберите тип блока</span>
             </div>
             <div className="relative">
               <select
-                className="w-full px-4 py-3 rounded-lg border text-white bg-[#090F1B] focus:outline-none focus:ring-2 focus:ring-white/20 appearance-none cursor-pointer"
+                className="w-full px-3 sm:px-4 py-3 sm:py-3.5 rounded-lg border text-white bg-[#090F1B] focus:outline-none focus:ring-2 focus:ring-white/20 appearance-none cursor-pointer text-sm sm:text-base min-h-[44px]"
                 style={{
                   borderColor: 'rgba(255, 255, 255, 0.1)',
                   backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'12\' height=\'8\' viewBox=\'0 0 12 8\' fill=\'none\'%3E%3Cpath d=\'M1 1L6 6L11 1\' stroke=\'%23ffffff\' stroke-opacity=\'0.7\' stroke-width=\'1.5\' stroke-linecap=\'round\' stroke-linejoin=\'round\'/%3E%3C/svg%3E")',
@@ -454,9 +461,9 @@ export default function CreateContentPage() {
                   defaultHeading="P1"
                 />
               </div>
-              <div className="mt-8">
+              <div className="mt-6 sm:mt-8">
                 <div
-                  className="border-2 border-dashed rounded-lg p-12 text-center cursor-pointer hover:border-white/30 transition-colors"
+                  className="border-2 border-dashed rounded-lg p-4 sm:p-6 lg:p-12 text-center cursor-pointer hover:border-white/30 active:border-white/40 transition-colors touch-manipulation min-h-[120px] sm:min-h-[180px] flex items-center justify-center"
                   style={{
                     borderColor: 'rgba(255, 255, 255, 0.1)',
                     backgroundColor: '#090F1B'
@@ -472,18 +479,18 @@ export default function CreateContentPage() {
                     input.click();
                   }}
                 >
-                  <div className="flex flex-col items-center gap-4">
+                  <div className="flex flex-col items-center gap-3 sm:gap-4 w-full">
                     {block.image ? (
-                      <img src={block.image} alt="Uploaded" className="max-w-full max-h-64 rounded" />
+                      <img src={block.image} alt="Uploaded" className="max-w-full max-h-48 sm:max-h-64 rounded" />
                     ) : (
                       <>
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" className="text-white/60">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="text-white/60 sm:w-12 sm:h-12">
                           <path d="M12 5V15M12 5L8 9M12 5L16 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                           <rect x="3" y="12" width="18" height="10" rx="2" stroke="currentColor" strokeWidth="2" fill="none"/>
                         </svg>
-                        <div className="flex flex-col gap-2">
-                          <span className="text-sm font-medium text-white">Нажмите для загрузки</span>
-                          <span className="text-xs text-white/60">Доступные расширения фото: jpeg, jpg, png, bmp</span>
+                        <div className="flex flex-col gap-1 sm:gap-2">
+                          <span className="text-xs sm:text-sm font-medium text-white">Нажмите для загрузки</span>
+                          <span className="text-[10px] sm:text-xs text-white/60 px-2">Доступные расширения фото: jpeg, jpg, png, bmp</span>
                         </div>
                       </>
                     )}
@@ -508,7 +515,7 @@ export default function CreateContentPage() {
           {block.type === 'image' && (
             <div className="mt-4">
               <div
-                className="border-2 border-dashed rounded-lg p-12 text-center cursor-pointer hover:border-white/30 transition-colors"
+                className="border-2 border-dashed rounded-lg p-4 sm:p-6 lg:p-12 text-center cursor-pointer hover:border-white/30 active:border-white/40 transition-colors touch-manipulation min-h-[120px] sm:min-h-[180px] flex items-center justify-center"
                 style={{
                   borderColor: 'rgba(255, 255, 255, 0.1)',
                   backgroundColor: '#090F1B'
@@ -524,18 +531,18 @@ export default function CreateContentPage() {
                   input.click();
                 }}
               >
-                <div className="flex flex-col items-center gap-4">
+                <div className="flex flex-col items-center gap-3 sm:gap-4 w-full">
                   {block.image ? (
-                    <img src={block.image} alt="Uploaded" className="max-w-full max-h-64 rounded" />
+                    <img src={block.image} alt="Uploaded" className="max-w-full max-h-48 sm:max-h-64 rounded" />
                   ) : (
                     <>
-                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" className="text-white/60">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="text-white/60 sm:w-12 sm:h-12">
                         <path d="M12 5V15M12 5L8 9M12 5L16 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                         <rect x="3" y="12" width="18" height="10" rx="2" stroke="currentColor" strokeWidth="2" fill="none"/>
                       </svg>
-                      <div className="flex flex-col gap-2">
-                        <span className="text-sm font-medium text-white">Нажмите для загрузки</span>
-                        <span className="text-xs text-white/60">Доступные расширения фото: jpeg, jpg, png, bmp</span>
+                      <div className="flex flex-col gap-1 sm:gap-2">
+                        <span className="text-xs sm:text-sm font-medium text-white">Нажмите для загрузки</span>
+                        <span className="text-[10px] sm:text-xs text-white/60 px-2">Доступные расширения фото: jpeg, jpg, png, bmp</span>
                       </div>
                     </>
                   )}
@@ -548,7 +555,7 @@ export default function CreateContentPage() {
             <>
               <div className="mb-4">
                 <div
-                  className="border-2 border-dashed rounded-lg p-12 text-center cursor-pointer hover:border-white/30 transition-colors"
+                  className="border-2 border-dashed rounded-lg p-4 sm:p-6 lg:p-12 text-center cursor-pointer hover:border-white/30 active:border-white/40 transition-colors touch-manipulation min-h-[120px] sm:min-h-[180px] flex items-center justify-center"
                   style={{
                     borderColor: 'rgba(255, 255, 255, 0.1)',
                     backgroundColor: '#090F1B'
@@ -564,14 +571,14 @@ export default function CreateContentPage() {
                     input.click();
                   }}
                 >
-                  <div className="flex flex-col items-center gap-4">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" className="text-white/60">
+                  <div className="flex flex-col items-center gap-3 sm:gap-4">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="text-white/60 sm:w-12 sm:h-12">
                       <path d="M12 5V15M12 5L8 9M12 5L16 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       <rect x="3" y="12" width="18" height="10" rx="2" stroke="currentColor" strokeWidth="2" fill="none"/>
                     </svg>
-                    <div className="flex flex-col gap-2">
-                      <span className="text-sm font-medium text-white">Нажмите для загрузки</span>
-                      <span className="text-xs text-white/60">Доступные расширения: mp3, wav, ogg</span>
+                    <div className="flex flex-col gap-1 sm:gap-2">
+                      <span className="text-xs sm:text-sm font-medium text-white">Нажмите для загрузки</span>
+                      <span className="text-[10px] sm:text-xs text-white/60 px-2">Доступные расширения: mp3, wav, ogg</span>
                     </div>
                   </div>
                 </div>
@@ -581,22 +588,22 @@ export default function CreateContentPage() {
                   {block.audioFiles.map((file, fileIndex) => (
                     <div
                       key={fileIndex}
-                      className="flex items-center justify-between px-4 py-3 rounded-lg border"
+                      className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border"
                       style={{
                         backgroundColor: '#090F1B',
                         borderColor: 'rgba(255, 255, 255, 0.1)'
                       }}
                     >
-                      <div className="flex items-center gap-3">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-white/70">
+                      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-white/70 flex-shrink-0 sm:w-5 sm:h-5">
                           <path d="M9 18V5L21 3V16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                           <circle cx="6" cy="18" r="3" stroke="currentColor" strokeWidth="2" fill="none"/>
                           <circle cx="18" cy="16" r="3" stroke="currentColor" strokeWidth="2" fill="none"/>
                         </svg>
-                        <span className="text-sm text-white">{file.name}</span>
+                        <span className="text-xs sm:text-sm text-white truncate">{file.name}</span>
                       </div>
                       <button
-                        className="text-white/60 hover:text-white transition-colors"
+                        className="text-white/60 hover:text-white active:text-white/80 transition-colors p-1.5 sm:p-1 touch-manipulation flex-shrink-0 min-w-[32px] min-h-[32px] flex items-center justify-center"
                         onClick={() => removeAudioFile(block.id, fileIndex)}
                       >
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -618,44 +625,50 @@ export default function CreateContentPage() {
     <>
       <Header activePage="contents" />
       <div 
-        className="min-h-screen flex flex-col items-center p-4 sm:p-6 lg:p-8"
+        className="min-h-screen w-full overflow-x-hidden box-border"
         style={{ 
-          backgroundColor: '#090F1B'
+          backgroundColor: '#090F1B',
+          maxWidth: '100vw',
+          width: '100%',
+          margin: 0,
+          padding: 0
         }}
       >
-        <div className="w-full max-w-[893px]">
-          {blocks.map((block, index) => renderBlock(block, index))}
-        </div>
-        
-        {/* Add Block Button */}
-        <div className="mt-8">
-          <button
-            onClick={addBlock}
-            className="px-6 py-3 rounded-lg border text-white hover:bg-white/10 transition-colors"
-            style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.05)',
-              borderColor: 'rgba(255, 255, 255, 0.1)'
-            }}
-          >
-            + Добавить блок
-          </button>
-        </div>
+        <div className="w-full sm:max-w-[893px] mx-auto px-3 sm:px-6 lg:px-8 box-border">
+          <div className="w-full box-border">
+            {blocks.map((block, index) => renderBlock(block, index))}
+          </div>
+          
+          {/* Add Block Button */}
+          <div className="mt-6 sm:mt-8 w-full box-border">
+            <button
+              onClick={addBlock}
+              className="w-full px-4 sm:px-6 py-3 sm:py-3.5 rounded-lg border text-white hover:bg-white/10 active:bg-white/20 transition-colors text-sm sm:text-base font-medium touch-manipulation min-h-[44px]"
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                borderColor: 'rgba(255, 255, 255, 0.1)'
+              }}
+            >
+              + Добавить блок
+            </button>
+          </div>
 
-        {/* Category and Publication Settings */}
-        <div className="mt-8 flex flex-col gap-4" style={{ width: '893px' }}>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm text-white/70 mb-2">Категория</label>
+          {/* Category and Publication Settings */}
+          <div className="mt-6 sm:mt-8 flex flex-col gap-4 sm:gap-5 w-full box-border">
+            <div className="w-full box-border flex-shrink-0" style={{ overflow: 'hidden' }}>
+              <label className="block text-xs sm:text-sm text-white/70 mb-2">Категория</label>
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border text-white bg-[#090F1B] focus:outline-none focus:ring-2 focus:ring-white/20 appearance-none cursor-pointer"
+                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border text-white bg-[#090F1B] focus:outline-none focus:ring-2 focus:ring-white/20 appearance-none cursor-pointer box-border text-sm sm:text-base min-h-[44px]"
                 style={{
                   borderColor: 'rgba(255, 255, 255, 0.1)',
                   backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'12\' height=\'8\' viewBox=\'0 0 12 8\' fill=\'none\'%3E%3Cpath d=\'M1 1L6 6L11 1\' stroke=\'%23ffffff\' stroke-opacity=\'0.7\' stroke-width=\'1.5\' stroke-linecap=\'round\' stroke-linejoin=\'round\'/%3E%3C/svg%3E")',
                   backgroundRepeat: 'no-repeat',
                   backgroundPosition: 'right 12px center',
-                  paddingRight: '40px'
+                  paddingRight: '40px',
+                  boxSizing: 'border-box',
+                  fontSize: '14px'
                 }}
               >
                 <option value="esoterics" className="bg-[#090F1B]">Эзотерика</option>
@@ -667,69 +680,71 @@ export default function CreateContentPage() {
                 <option value="other" className="bg-[#090F1B]">Другое</option>
               </select>
             </div>
-            <div>
-              <label className="block text-sm text-white/70 mb-2">Кому доступен для просмотра</label>
+            <div className="w-full box-border flex-shrink-0" style={{ overflow: 'hidden' }}>
+              <label className="block text-xs sm:text-sm text-white/70 mb-2">Кому доступен для просмотра</label>
               <select
                 value={accessibility}
                 onChange={(e) => setAccessibility(e.target.value as 'subscribers' | 'all' | 'my_subscribers')}
-                className="w-full px-4 py-3 rounded-lg border text-white bg-[#090F1B] focus:outline-none focus:ring-2 focus:ring-white/20 appearance-none cursor-pointer"
+                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border text-white bg-[#090F1B] focus:outline-none focus:ring-2 focus:ring-white/20 appearance-none cursor-pointer box-border text-sm sm:text-base min-h-[44px]"
                 style={{
                   borderColor: 'rgba(255, 255, 255, 0.1)',
                   backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'12\' height=\'8\' viewBox=\'0 0 12 8\' fill=\'none\'%3E%3Cpath d=\'M1 1L6 6L11 1\' stroke=\'%23ffffff\' stroke-opacity=\'0.7\' stroke-width=\'1.5\' stroke-linecap=\'round\' stroke-linejoin=\'round\'/%3E%3C/svg%3E")',
                   backgroundRepeat: 'no-repeat',
                   backgroundPosition: 'right 12px center',
-                  paddingRight: '40px'
+                  paddingRight: '40px',
+                  boxSizing: 'border-box',
+                  fontSize: '14px'
                 }}
               >
-                <option value="all" className="bg-[#090F1B]">Всем</option>
-                <option value="subscribers" className="bg-[#090F1B]">Подписчикам</option>
-                <option value="my_subscribers" className="bg-[#090F1B]">Всем моим подписчикам</option>
+                <option value="all" className="bg-[#090F1B] text-sm">Всем</option>
+                <option value="subscribers" className="bg-[#090F1B] text-sm">Подписчикам</option>
+                <option value="my_subscribers" className="bg-[#090F1B] text-sm">Всем моим подписчикам</option>
               </select>
             </div>
+            <div className="flex items-center gap-2.5 sm:gap-3">
+              <input
+                type="checkbox"
+                id="isPublished"
+                checked={isPublished}
+                onChange={(e) => setIsPublished(e.target.checked)}
+                className="w-5 h-5 sm:w-6 sm:h-6 rounded border cursor-pointer touch-manipulation"
+                style={{
+                  backgroundColor: isPublished ? '#00051B' : '#090F1B',
+                  borderColor: 'rgba(255, 255, 255, 0.1)',
+                  accentColor: '#00051B'
+                }}
+              />
+              <label htmlFor="isPublished" className="text-sm sm:text-base text-white/70 cursor-pointer touch-manipulation">
+                Опубликовать
+              </label>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="isPublished"
-              checked={isPublished}
-              onChange={(e) => setIsPublished(e.target.checked)}
-              className="w-5 h-5 rounded border cursor-pointer"
-              style={{
-                backgroundColor: isPublished ? '#00051B' : '#090F1B',
-                borderColor: 'rgba(255, 255, 255, 0.1)',
-                accentColor: '#00051B'
-              }}
-            />
-            <label htmlFor="isPublished" className="text-sm text-white/70 cursor-pointer">
-              Опубликовать
-            </label>
-          </div>
-        </div>
 
-        {/* Save and Cancel Buttons */}
-        <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full px-4">
-          <button
-            onClick={handleCancel}
-            className="w-full sm:w-auto px-6 sm:px-8 py-2 sm:py-3 rounded-lg border text-white hover:bg-white/10 transition-colors text-sm sm:text-base"
-            style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.05)',
-              borderColor: 'rgba(255, 255, 255, 0.1)'
-            }}
-            disabled={isSaving}
-          >
-            Отмена
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="w-full sm:w-auto px-6 sm:px-8 py-2 sm:py-3 rounded-lg border text-white hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
-            style={{
-              backgroundColor: isSaving ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.15)',
-              borderColor: 'rgba(255, 255, 255, 0.2)'
-            }}
-          >
-            {isSaving ? 'Сохранение...' : 'Сохранить'}
-          </button>
+          {/* Save and Cancel Buttons */}
+          <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 w-full box-border pb-6 sm:pb-8">
+            <button
+              onClick={handleCancel}
+              className="w-full sm:w-auto sm:flex-1 sm:max-w-[200px] px-4 sm:px-6 lg:px-8 py-3 sm:py-3.5 rounded-lg border text-white hover:bg-white/10 active:bg-white/20 transition-colors text-sm sm:text-base font-medium touch-manipulation min-h-[44px]"
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                borderColor: 'rgba(255, 255, 255, 0.1)'
+              }}
+              disabled={isSaving}
+            >
+              Отмена
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="w-full sm:w-auto sm:flex-1 sm:max-w-[200px] px-4 sm:px-6 lg:px-8 py-3 sm:py-3.5 rounded-lg border text-white hover:bg-white/20 active:bg-white/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base font-medium touch-manipulation min-h-[44px]"
+              style={{
+                backgroundColor: isSaving ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.15)',
+                borderColor: 'rgba(255, 255, 255, 0.2)'
+              }}
+            >
+              {isSaving ? 'Сохранение...' : 'Сохранить'}
+            </button>
+          </div>
         </div>
       </div>
       <Footer />

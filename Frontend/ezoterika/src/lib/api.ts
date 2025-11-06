@@ -7,7 +7,7 @@ const getApiBaseUrl = () => {
     return '';
   }
   // Server-side: use backend URL
-  return 'http://backend:8000';
+  return 'http://localhost:8000';
 };
 
 export const API_BASE_URL = getApiBaseUrl();
@@ -18,6 +18,7 @@ export const API_ENDPOINTS = {
     SIGN_UP: `${API_BASE_URL}/api/user/sign-up/`,
     SIGN_IN: `${API_BASE_URL}/api/user/sign-in/`,
     GOOGLE_AUTH: `${API_BASE_URL}/api/user/google-auth/`,
+    FACEBOOK_AUTH: `${API_BASE_URL}/api/user/facebook-auth/`,
     VERIFY_EMAIL: `${API_BASE_URL}/api/user/verify-email/`,
     PROFILE: `${API_BASE_URL}/api/user/profile/`,
     HISTORY: `${API_BASE_URL}/api/user/history/`,
@@ -170,8 +171,20 @@ export interface GoogleAuthData {
   credential: string;
 }
 
+export interface FacebookAuthData {
+  access_token: string;
+  user_id?: string;
+}
+
 export const googleAuth = async (data: GoogleAuthData): Promise<ApiResponse> => {
   return apiRequest<ApiResponse>(API_ENDPOINTS.USER.GOOGLE_AUTH, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+};
+
+export const facebookAuth = async (data: FacebookAuthData): Promise<ApiResponse> => {
+  return apiRequest<ApiResponse>(API_ENDPOINTS.USER.FACEBOOK_AUTH, {
     method: 'POST',
     body: JSON.stringify(data),
   });

@@ -2,11 +2,13 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { registerUser, googleAuth, setStoredTokens, setUserData, type RegistrationData, type ApiResponse } from '@/lib/api';
+import { registerUser, googleAuth, facebookAuth, setStoredTokens, setUserData, type RegistrationData, type ApiResponse } from '@/lib/api';
 
 declare global {
   interface Window {
     google: any;
+    FB: any;
+    fbAsyncInit: () => void;
   }
 }
 
@@ -19,6 +21,7 @@ export default function SignUpPage() {
   const [agreement, setAgreement] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isFacebookLoading, setIsFacebookLoading] = useState(false);
   const [error, setError] = useState('');
   const googleButtonRef = useRef<HTMLDivElement>(null);
 
@@ -126,30 +129,121 @@ export default function SignUpPage() {
     const initializeGoogleSignIn = () => {
       if (!window.google || !googleButtonRef.current) return;
 
-      window.google.accounts.id.initialize({
-        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '',
-        callback: handleGoogleCallback,
-      });
+      const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '936084880439-2jfpq9aih9dpkf8dgn5i5jd8u8o7bv2h.apps.googleusercontent.com';
+      
+      try {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: handleGoogleCallback,
+          error_callback: (error: any) => {
+            console.error('Google Sign-In error:', error);
+            if (error.type === 'popup_closed_by_user') {
+              // Пользователь закрыл окно - это нормально
+              return;
+            }
+            if (error.type === 'popup_failed_to_open') {
+              setError('Не удалось открыть окно авторизации. Проверьте настройки браузера.');
+            } else if (error.type === 'unknown') {
+              setError('Ошибка авторизации через Google. Проверьте настройки приложения в Google Cloud Console.');
+            }
+          },
+        });
 
-      window.google.accounts.id.renderButton(
-        googleButtonRef.current,
-        {
-          type: 'standard',
-          theme: 'outline',
-          size: 'large',
-          text: 'signup_with',
-          locale: 'ru',
-        }
-      );
+        window.google.accounts.id.renderButton(
+          googleButtonRef.current,
+          {
+            type: 'standard',
+            theme: 'outline',
+            size: 'large',
+            text: 'signup_with',
+            locale: 'ru',
+          }
+        );
+      } catch (error: any) {
+        console.error('Error initializing Google Sign-In:', error);
+        setError('Ошибка инициализации Google авторизации. Убедитесь, что домен добавлен в Google Cloud Console.');
+      }
     };
 
     loadGoogleScript();
+
+    // Загружаем Facebook SDK
+    const loadFacebookScript = () => {
+      if (window.FB) {
+        return;
+      }
+
+      window.fbAsyncInit = () => {
+        window.FB.init({
+          appId: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '',
+          cookie: true,
+          xfbml: true,
+          version: 'v18.0'
+        });
+      };
+
+      const script = document.createElement('script');
+      script.src = 'https://connect.facebook.net/ru_RU/sdk.js';
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+    };
+
+    loadFacebookScript();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleFacebookAuth = () => {
-    // Здесь будет логика регистрации через Facebook
-    console.log('Facebook registration');
+  const handleFacebookAuth = async () => {
+    setIsFacebookLoading(true);
+    setError('');
+
+    try {
+      if (!window.FB) {
+        setError('Facebook SDK не загружен');
+        setIsFacebookLoading(false);
+        return;
+      }
+
+      window.FB.login((response: any) => {
+        if (response.authResponse) {
+          // Пользователь успешно авторизовался
+          const accessToken = response.authResponse.accessToken;
+          handleFacebookCallback(accessToken);
+        } else {
+          setError('Авторизация через Facebook была отменена');
+          setIsFacebookLoading(false);
+        }
+      }, { scope: 'email,public_profile' });
+    } catch (error: any) {
+      console.error('Facebook auth error:', error);
+      setError(error.message || 'Ошибка при регистрации через Facebook');
+      setIsFacebookLoading(false);
+    }
+  };
+
+  const handleFacebookCallback = async (accessToken: string) => {
+    try {
+      const result = await facebookAuth({ access_token: accessToken });
+      
+      // Сохраняем токены в localStorage
+      if (result.tokens) {
+        setStoredTokens(result.tokens.access, result.tokens.refresh);
+      }
+      
+      // Сохраняем данные пользователя
+      if (result.user) {
+        setUserData(result.user);
+      }
+      
+      // Успешная регистрация/авторизация
+      router.push('/contents');
+      
+    } catch (error: any) {
+      console.error('Facebook auth error:', error);
+      setError(error.message || 'Ошибка при регистрации через Facebook');
+    } finally {
+      setIsFacebookLoading(false);
+    }
   };
 
   return (
@@ -277,15 +371,22 @@ export default function SignUpPage() {
             <button
               type="button"
               onClick={handleFacebookAuth}
-              className="flex-1 bg-[#2A2836] text-white py-2 sm:py-3 lg:py-4 rounded-[360px] font-medium hover:bg-[#323050] transition-colors flex items-center justify-center space-x-2 text-xs sm:text-sm border border-gray-300"
+              disabled={isFacebookLoading}
+              className={`flex-1 bg-[#2A2836] text-white py-2 sm:py-3 lg:py-4 rounded-[360px] font-medium hover:bg-[#323050] transition-colors flex items-center justify-center space-x-2 text-xs sm:text-sm border border-gray-300 ${
+                isFacebookLoading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
             >
               <div className="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
                 <svg viewBox="0 0 24 24" className="w-4 h-4 sm:w-5 sm:h-5">
                   <path fill="#1877F2" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                 </svg>
               </div>
-              <span className="hidden sm:inline">Продолжить с Facebook</span>
-              <span className="sm:hidden">Facebook</span>
+              <span className="hidden sm:inline">
+                {isFacebookLoading ? 'Регистрация...' : 'Продолжить с Facebook'}
+              </span>
+              <span className="sm:hidden">
+                {isFacebookLoading ? '...' : 'Facebook'}
+              </span>
             </button>
           </div>
 
