@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getStoredTokens, getUserData, updateUserProfile, convertFileToBase64, getUserProfile, getUserHistory, getUserSettings, updateUserSettings, changePassword, getPaymentHistory } from '@/lib/api';
+import { getStoredTokens, getUserData, updateUserProfile, convertFileToBase64, getUserProfile, getUserHistory, getUserSettings, updateUserSettings, changePassword, getPaymentHistory, getUserSubscriptions, unsubscribeFromUser } from '@/lib/api';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
@@ -54,6 +54,8 @@ function ProfileContent() {
     }
   });
   const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [isLoadingSubscriptions, setIsLoadingSubscriptions] = useState(false);
 
   useEffect(() => {
     const { accessToken } = getStoredTokens();
@@ -80,6 +82,12 @@ function ProfileContent() {
   useEffect(() => {
     if (activeSection === 'settings') {
       loadUserSettings();
+    }
+  }, [activeSection]);
+
+  useEffect(() => {
+    if (activeSection === 'favorites') {
+      loadSubscriptions();
     }
   }, [activeSection]);
 
@@ -406,6 +414,35 @@ function ProfileContent() {
     } catch (error) {
       console.error('Error loading payment history:', error);
       alert('Ошибка при загрузке истории платежей');
+    }
+  };
+
+  const loadSubscriptions = async () => {
+    setIsLoadingSubscriptions(true);
+    try {
+      const response = await getUserSubscriptions();
+      setSubscriptions(response.subscriptions || []);
+    } catch (error) {
+      console.error('Error loading subscriptions:', error);
+      setSubscriptions([]);
+    } finally {
+      setIsLoadingSubscriptions(false);
+    }
+  };
+
+  const handleUnsubscribe = async (userId: string, userName: string) => {
+    if (!confirm(`Вы уверены, что хотите отписаться от ${userName}?`)) {
+      return;
+    }
+
+    try {
+      await unsubscribeFromUser(userId);
+      // Обновляем список подписок
+      setSubscriptions(prev => prev.filter(sub => sub.subscribed_to !== userId));
+      alert('Вы успешно отписались');
+    } catch (error: any) {
+      console.error('Error unsubscribing:', error);
+      alert(error.message || 'Ошибка при отписке');
     }
   };
 
@@ -743,10 +780,102 @@ function ProfileContent() {
                   )}
 
                   {activeSection === 'favorites' && (
-                    <div className="text-center py-12">
-                      <div className="text-gray-400 text-lg">
-                        Избранное будет добавлено позже
+                    <div className="space-y-4 sm:space-y-6">
+                      <div>
+                        <h2 className="text-white text-xl font-semibold mb-4">
+                          Мои подписки
+                        </h2>
+                        <p className="text-gray-400 text-sm mb-6">
+                          Список авторов, на которых вы подписаны
+                        </p>
                       </div>
+
+                      {isLoadingSubscriptions ? (
+                        <div className="space-y-3">
+                          {[...Array(4)].map((_, i) => (
+                            <div key={i} className="flex items-center gap-4 p-4 bg-[#2A2A2A] rounded-lg animate-pulse">
+                              <div className="w-12 h-12 bg-gray-600 rounded-full"></div>
+                              <div className="flex-1">
+                                <div className="h-4 bg-gray-600 rounded w-1/3 mb-2"></div>
+                                <div className="h-3 bg-gray-600 rounded w-1/4"></div>
+                              </div>
+                              <div className="h-8 bg-gray-600 rounded w-24"></div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : subscriptions.length > 0 ? (
+                        <div className="space-y-3">
+                          {subscriptions.map((subscription) => (
+                            <div 
+                              key={subscription.id || subscription.subscribed_to} 
+                              className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-[#2A2A2A] rounded-lg border border-gray-700 hover:border-gray-600 transition-colors"
+                            >
+                              <div className="flex items-center gap-4 flex-1 min-w-0">
+                                {/* Аватар */}
+                                <div className="w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0">
+                                  {subscription.subscribed_to_avatar ? (
+                                    <img 
+                                      src={subscription.subscribed_to_avatar.startsWith('data:') 
+                                        ? subscription.subscribed_to_avatar 
+                                        : `data:image/png;base64,${subscription.subscribed_to_avatar}`}
+                                      alt={subscription.subscribed_to_fio}
+                                      className="w-full h-full rounded-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full rounded-full bg-gray-600 flex items-center justify-center">
+                                      <svg className="w-6 h-6 sm:w-8 sm:h-8 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                      </svg>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Информация о пользователе */}
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="text-white font-medium text-base sm:text-lg truncate">
+                                    {subscription.subscribed_to_fio || 'Пользователь'}
+                                  </h3>
+                                  {subscription.subscribed_to_nickname && (
+                                    <p className="text-gray-400 text-sm truncate">
+                                      @{subscription.subscribed_to_nickname}
+                                    </p>
+                                  )}
+                                  {subscription.subscribed_to_rating !== undefined && (
+                                    <p className="text-gray-500 text-xs mt-1">
+                                      Рейтинг: {subscription.subscribed_to_rating}
+                                    </p>
+                                  )}
+                                  {subscription.created_at && (
+                                    <p className="text-gray-500 text-xs mt-1">
+                                      Подписан с {formatDate(subscription.created_at)}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Кнопка отписки */}
+                              <button
+                                onClick={() => handleUnsubscribe(
+                                  subscription.subscribed_to, 
+                                  subscription.subscribed_to_fio || 'пользователя'
+                                )}
+                                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm sm:text-base whitespace-nowrap flex-shrink-0"
+                              >
+                                Отписаться
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-12">
+                          <div className="text-gray-400 text-lg mb-2">
+                            У вас пока нет подписок
+                          </div>
+                          <p className="text-gray-500 text-sm">
+                            Подписывайтесь на авторов статей, чтобы видеть их контент первыми
+                          </p>
+                        </div>
+                      )}
                     </div>
                   )}
 

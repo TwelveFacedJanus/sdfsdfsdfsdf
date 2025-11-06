@@ -32,11 +32,13 @@ class UserFavouriteListSerializer(serializers.ModelSerializer):
     subscribed_to_email = serializers.CharField(source='subscribed_to.email', read_only=True)
     subscribed_to_nickname = serializers.CharField(source='subscribed_to.nickname', read_only=True)
     subscribed_to_rating = serializers.IntegerField(source='subscribed_to.rating', read_only=True)
+    subscribed_to_avatar = serializers.CharField(source='subscribed_to.base64_image', read_only=True)
+    subscribed_to = serializers.UUIDField(source='subscribed_to.id', read_only=True)
     
     class Meta:
         model = UserFavourite
-        fields = ['id', 'subscribed_to_fio', 'subscribed_to_email', 
-                 'subscribed_to_nickname', 'subscribed_to_rating', 'created_at']
+        fields = ['id', 'subscribed_to', 'subscribed_to_fio', 'subscribed_to_email', 
+                 'subscribed_to_nickname', 'subscribed_to_rating', 'subscribed_to_avatar', 'created_at']
 
 
 class SubscriberSerializer(serializers.ModelSerializer):
