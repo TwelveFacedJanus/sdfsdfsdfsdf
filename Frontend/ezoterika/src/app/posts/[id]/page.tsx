@@ -326,7 +326,8 @@ export default function PostDetailPage() {
       { 
         regex: /<u>(.*?)<\/u>/g, 
         render: (match: RegExpExecArray) => {
-          const content = match[1] || '';
+          if (!match || match.length < 2) return null;
+          const content = (match[1] !== undefined && match[1] !== null) ? match[1] : '';
           return (
             <u key={`u-${keyCounter++}`} className="underline">
               {renderInlineMarkdown(content).map((node, idx) => <React.Fragment key={idx}>{node}</React.Fragment>)}
@@ -338,7 +339,8 @@ export default function PostDetailPage() {
       { 
         regex: /\*\*(.*?)\*\*/g, 
         render: (match: RegExpExecArray) => {
-          const content = match[1] || '';
+          if (!match || match.length < 2) return null;
+          const content = (match[1] !== undefined && match[1] !== null) ? match[1] : '';
           return (
             <strong key={`strong-${keyCounter++}`} className="font-bold">
               {renderInlineMarkdown(content).map((node, idx) => <React.Fragment key={idx}>{node}</React.Fragment>)}
@@ -350,7 +352,8 @@ export default function PostDetailPage() {
       { 
         regex: /(?<!\*)\*([^*\n]+?)\*(?!\*)/g, 
         render: (match: RegExpExecArray) => {
-          const content = match[1] || '';
+          if (!match || match.length < 2) return null;
+          const content = (match[1] !== undefined && match[1] !== null) ? match[1] : '';
           return <em key={`em-${keyCounter++}`} className="italic">{content}</em>;
         }
       },
@@ -358,8 +361,9 @@ export default function PostDetailPage() {
       { 
         regex: /\[([^\]]+)\]\(([^)]+)\)/g, 
         render: (match: RegExpExecArray) => {
-          const linkText = match[1] || '';
-          const url = match[2] || '#';
+          if (!match || match.length < 3) return null;
+          const linkText = (match[1] !== undefined && match[1] !== null) ? match[1] : '';
+          const url = (match[2] !== undefined && match[2] !== null) ? match[2] : '#';
           return (
             <a 
               key={`link-${keyCounter++}`} 
@@ -423,7 +427,16 @@ export default function PostDetailPage() {
       
       // Добавляем отрендеренный элемент
       try {
-        parts.push(match.render());
+        const rendered = match.render();
+        if (rendered !== null && rendered !== undefined) {
+          parts.push(rendered);
+        } else {
+          // Если render вернул null, добавляем исходный текст
+          const plainText = text.substring(match.start, match.end);
+          if (plainText) {
+            parts.push(<span key={`text-${keyCounter++}`}>{plainText}</span>);
+          }
+        }
       } catch (error) {
         console.error('Error rendering markdown element:', error);
         // В случае ошибки добавляем исходный текст
