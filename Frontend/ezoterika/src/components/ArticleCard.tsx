@@ -42,120 +42,122 @@ export default function ArticleCard({
   const renderInlineMarkdown = (text: string): React.ReactNode[] => {
     if (!text || typeof text !== 'string') return [text || ''];
     
-    const parts: React.ReactNode[] = [];
-    let currentIndex = 0;
+    const result: React.ReactNode[] = [];
     let keyCounter = 0;
     
-    // Регулярные выражения для различных markdown элементов
-    const patterns = [
+    // Разбиваем текст на части, обрабатывая markdown последовательно
+    const processText = (input: string, depth: number = 0): React.ReactNode[] => {
+      if (depth > 10) return [input]; // Защита от бесконечной рекурсии
+      
+      const parts: React.ReactNode[] = [];
+      let remaining = input;
+      let lastIndex = 0;
+      
+      // Находим все markdown элементы в порядке появления
+      const allMatches: Array<{ start: number; end: number; type: string; content: string }> = [];
+      
       // HTML теги подчеркивания
-      { 
-        regex: /<u>(.*?)<\/u>/g, 
-        render: (match: RegExpExecArray) => {
-          if (!match || match.length < 2) return null;
-          const content = (match[1] !== undefined && match[1] !== null) ? match[1] : '';
-          return (
-            <u key={`u-${keyCounter++}`} className="underline">
-              {renderInlineMarkdown(content).map((node, idx) => <React.Fragment key={idx}>{node}</React.Fragment>)}
-            </u>
-          );
-        }
-      },
+      const underlineRegex = /<u>(.*?)<\/u>/g;
+      let match;
+      while ((match = underlineRegex.exec(remaining)) !== null) {
+        allMatches.push({
+          start: match.index,
+          end: match.index + match[0].length,
+          type: 'u',
+          content: match[1] || ''
+        });
+      }
+      
       // Жирный текст **text**
-      { 
-        regex: /\*\*(.*?)\*\*/g, 
-        render: (match: RegExpExecArray) => {
-          if (!match || match.length < 2) return null;
-          const content = (match[1] !== undefined && match[1] !== null) ? match[1] : '';
-          return (
-            <strong key={`strong-${keyCounter++}`} className="font-bold">
-              {renderInlineMarkdown(content).map((node, idx) => <React.Fragment key={idx}>{node}</React.Fragment>)}
-            </strong>
-          );
-        }
-      },
-      // Курсив *text* (но не **text**)
-      { 
-        regex: /(?<!\*)\*([^*\n]+?)\*(?!\*)/g, 
-        render: (match: RegExpExecArray) => {
-          if (!match || match.length < 2) return null;
-          const content = (match[1] !== undefined && match[1] !== null) ? match[1] : '';
-          return <em key={`em-${keyCounter++}`} className="italic">{content}</em>;
-        }
-      },
-    ];
-    
-    // Находим все совпадения
-    const matches: Array<{ start: number; end: number; render: () => React.ReactNode | null }> = [];
-    
-    patterns.forEach(pattern => {
-      let match: RegExpExecArray | null;
-      const regex = new RegExp(pattern.regex.source, pattern.regex.flags);
-      regex.lastIndex = 0;
-      while ((match = regex.exec(text)) !== null) {
-        if (match && match.index !== undefined) {
-          matches.push({
+      const boldRegex = /\*\*(.*?)\*\*/g;
+      boldRegex.lastIndex = 0;
+      while ((match = boldRegex.exec(remaining)) !== null) {
+        allMatches.push({
+          start: match.index,
+          end: match.index + match[0].length,
+          type: 'strong',
+          content: match[1] || ''
+        });
+      }
+      
+      // Курсив *text* (только если не является частью **text**)
+      const italicRegex = /\*([^*\n]+?)\*/g;
+      italicRegex.lastIndex = 0;
+      while ((match = italicRegex.exec(remaining)) !== null) {
+        // Проверяем, что это не часть **text**
+        const before = match.index > 0 ? remaining[match.index - 1] : '';
+        const after = match.index + match[0].length < remaining.length ? remaining[match.index + match[0].length] : '';
+        if (before !== '*' && after !== '*') {
+          allMatches.push({
             start: match.index,
-            end: match.index + (match[0]?.length || 0),
-            render: () => pattern.render(match!)
+            end: match.index + match[0].length,
+            type: 'em',
+            content: match[1] || ''
           });
         }
-        if (regex.lastIndex === match.index) {
-          regex.lastIndex++;
-        }
-      }
-    });
-    
-    // Сортируем совпадения по позиции
-    matches.sort((a, b) => a.start - b.start);
-    
-    // Удаляем перекрывающиеся совпадения
-    const filteredMatches: typeof matches = [];
-    let lastEnd = 0;
-    matches.forEach(match => {
-      if (match.start >= lastEnd) {
-        filteredMatches.push(match);
-        lastEnd = match.end;
-      }
-    });
-    
-    // Строим результат
-    filteredMatches.forEach((match) => {
-      if (match.start > currentIndex) {
-        const plainText = text.substring(currentIndex, match.start);
-        if (plainText) {
-          parts.push(<span key={`text-${keyCounter++}`}>{plainText}</span>);
-        }
       }
       
-      try {
-        const rendered = match.render();
-        if (rendered !== null && rendered !== undefined) {
-          parts.push(rendered);
-        } else {
-          const plainText = text.substring(match.start, match.end);
+      // Сортируем по позиции
+      allMatches.sort((a, b) => a.start - b.start);
+      
+      // Удаляем перекрывающиеся (оставляем первые)
+      const filteredMatches: typeof allMatches = [];
+      let lastEnd = 0;
+      allMatches.forEach(m => {
+        if (m.start >= lastEnd) {
+          filteredMatches.push(m);
+          lastEnd = m.end;
+        }
+      });
+      
+      // Строим результат
+      filteredMatches.forEach((m) => {
+        // Текст до совпадения
+        if (m.start > lastIndex) {
+          const plainText = remaining.substring(lastIndex, m.start);
           if (plainText) {
-            parts.push(<span key={`text-${keyCounter++}`}>{plainText}</span>);
+            parts.push(...processText(plainText, depth + 1));
           }
         }
-      } catch (error) {
-        const plainText = text.substring(match.start, match.end);
+        
+        // Обрабатываем markdown элемент
+        switch (m.type) {
+          case 'u':
+            parts.push(
+              <u key={`u-${keyCounter++}`} className="underline">
+                {processText(m.content, depth + 1).map((node, idx) => <React.Fragment key={idx}>{node}</React.Fragment>)}
+              </u>
+            );
+            break;
+          case 'strong':
+            parts.push(
+              <strong key={`strong-${keyCounter++}`} className="font-bold">
+                {processText(m.content, depth + 1).map((node, idx) => <React.Fragment key={idx}>{node}</React.Fragment>)}
+              </strong>
+            );
+            break;
+          case 'em':
+            parts.push(
+              <em key={`em-${keyCounter++}`} className="italic">{m.content}</em>
+            );
+            break;
+        }
+        
+        lastIndex = m.end;
+      });
+      
+      // Оставшийся текст
+      if (lastIndex < remaining.length) {
+        const plainText = remaining.substring(lastIndex);
         if (plainText) {
-          parts.push(<span key={`text-${keyCounter++}`}>{plainText}</span>);
+          parts.push(...processText(plainText, depth + 1));
         }
       }
       
-      currentIndex = match.end;
-    });
+      return parts.length > 0 ? parts : [remaining];
+    };
     
-    if (currentIndex < text.length) {
-      const plainText = text.substring(currentIndex);
-      if (plainText) {
-        parts.push(<span key={`text-${keyCounter++}`}>{plainText}</span>);
-      }
-    }
-    
-    return parts.length > 0 ? parts : [text];
+    return processText(text);
   };
   return (
     <article 
