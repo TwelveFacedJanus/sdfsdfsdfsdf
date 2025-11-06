@@ -28,6 +28,9 @@ export const API_ENDPOINTS = {
     TOKEN_REFRESH: `${API_BASE_URL}/api/user/token/refresh/`,
     LOGOUT: `${API_BASE_URL}/api/user/logout/`,
     TOP_USERS: `${API_BASE_URL}/api/user/top-users/`,
+    NOTIFICATIONS: `${API_BASE_URL}/api/user/notifications/`,
+    MARK_NOTIFICATION_READ: `${API_BASE_URL}/api/user/notifications/`,
+    MARK_ALL_NOTIFICATIONS_READ: `${API_BASE_URL}/api/user/notifications/mark-all-read/`,
   },
   CONTENT: {
     POSTS: `${API_BASE_URL}/api/content/posts/`,
@@ -508,5 +511,29 @@ export const getUserSubscribers = async (): Promise<any> => {
 export const getSubscriptionStats = async (): Promise<any> => {
   return apiRequest(API_ENDPOINTS.SUBSCRIPTIONS.STATS, {
     method: 'GET',
+  });
+};
+
+// Notifications API Functions
+export const getNotifications = async (unreadOnly: boolean = false, limit?: number): Promise<any> => {
+  const params = new URLSearchParams();
+  if (unreadOnly) params.append('unread_only', 'true');
+  if (limit) params.append('limit', limit.toString());
+  
+  const url = `${API_ENDPOINTS.USER.NOTIFICATIONS}${params.toString() ? `?${params.toString()}` : ''}`;
+  return apiRequest(url, {
+    method: 'GET',
+  });
+};
+
+export const markNotificationRead = async (notificationId: string): Promise<any> => {
+  return apiRequest(`${API_ENDPOINTS.USER.MARK_NOTIFICATION_READ}${notificationId}/read/`, {
+    method: 'POST',
+  });
+};
+
+export const markAllNotificationsRead = async (): Promise<any> => {
+  return apiRequest(API_ENDPOINTS.USER.MARK_ALL_NOTIFICATIONS_READ, {
+    method: 'POST',
   });
 };

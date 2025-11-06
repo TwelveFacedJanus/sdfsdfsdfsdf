@@ -34,4 +34,10 @@ urlpatterns = [
     path('top-users', views.get_top_users, name='get_top_users_no_slash'),
     path('create-checkout-session/', views.create_checkout_session, name='create_checkout_session'),
     path('create-checkout-session', views.create_checkout_session, name='create_checkout_session_no_slash'),
+    path('notifications/', views.get_notifications, name='get_notifications'),
+    path('notifications', views.get_notifications, name='get_notifications_no_slash'),
+    path('notifications/<uuid:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
+    path('notifications/<uuid:notification_id>/read', views.mark_notification_read, name='mark_notification_read_no_slash'),
+    path('notifications/mark-all-read/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
+    path('notifications/mark-all-read', views.mark_all_notifications_read, name='mark_all_notifications_read_no_slash'),
 ]

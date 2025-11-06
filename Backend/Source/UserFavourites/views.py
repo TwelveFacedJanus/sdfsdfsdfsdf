@@ -5,6 +5,9 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.db import IntegrityError
 from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
+from django.conf import settings
+from UserService.models import Notification
 from .models import UserFavourite
 from .serializers import UserFavouriteSerializer, UserFavouriteCreateSerializer, UserFavouriteListSerializer, SubscriberSerializer
 
@@ -53,6 +56,33 @@ def subscribe_to_user(request):
     if serializer.is_valid():
         try:
             favourite = serializer.save()
+            
+            # Создаем уведомление для автора, на которого подписались
+            subscribed_to_user = favourite.subscribed_to
+            subscriber_user = request.user
+            
+            # Создаем уведомление
+            notification = Notification.objects.create(
+                user=subscribed_to_user,
+                notification_type='subscription',
+                title='Новая подписка',
+                message=f'{subscriber_user.fio} подписался(ась) на вас',
+                related_user=subscriber_user
+            )
+            
+            # Отправляем email уведомление, если включено
+            if subscribed_to_user.notification_email and subscribed_to_user.is_email_verified:
+                try:
+                    send_mail(
+                        subject=f'{subscriber_user.fio} подписался(ась) на вас',
+                        message=f'Пользователь {subscriber_user.fio} подписался на вас на платформе Ezoterika.',
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[subscribed_to_user.email],
+                        fail_silently=True,
+                    )
+                except Exception as email_error:
+                    print(f"Error sending email notification: {email_error}")
+            
             return Response({
                 'message': 'Успешно подписались на пользователя',
                 'subscription': UserFavouriteSerializer(favourite).data
@@ -91,7 +121,34 @@ def unsubscribe_from_user(request, user_id):
             subscriber=request.user, 
             subscribed_to_id=user_id
         )
+        
+        # Сохраняем данные перед удалением для уведомления
+        subscribed_to_user = favourite.subscribed_to
+        subscriber_user = request.user
+        
         favourite.delete()
+        
+        # Создаем уведомление об отписке
+        notification = Notification.objects.create(
+            user=subscribed_to_user,
+            notification_type='unsubscription',
+            title='Отписка',
+            message=f'{subscriber_user.fio} отписался(ась) от вас',
+            related_user=subscriber_user
+        )
+        
+        # Отправляем email уведомление, если включено
+        if subscribed_to_user.notification_email and subscribed_to_user.is_email_verified:
+            try:
+                send_mail(
+                    subject=f'{subscriber_user.fio} отписался(ась) от вас',
+                    message=f'Пользователь {subscriber_user.fio} отписался от вас на платформе Ezoterika.',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[subscribed_to_user.email],
+                    fail_silently=True,
+                )
+            except Exception as email_error:
+                print(f"Error sending email notification: {email_error}")
         
         return Response({
             'message': 'Успешно отписались от пользователя'

@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.html import format_html
 from django.urls import reverse
-from .models import User
+from .models import User, Notification
 
 
 @admin.register(User)
@@ -81,3 +81,13 @@ class CustomUserAdmin(UserAdmin):
     def verify_email(self, request, queryset):
         updated = queryset.update(is_email_verified=True)
         self.message_user(request, f'Email {updated} пользователей подтверждено.')
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'notification_type', 'title', 'is_read', 'created_at')
+    list_filter = ('notification_type', 'is_read', 'created_at')
+    search_fields = ('user__email', 'user__fio', 'title', 'message')
+    readonly_fields = ('id', 'created_at')
+    ordering = ('-created_at',)
+    list_per_page = 50

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import User
+from .models import User, Notification
 
 
 class UserSignUpSerializer(serializers.ModelSerializer):
@@ -86,3 +86,15 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'fio', 'email', 'nickname', 'date_of_birth', 'country', 'language', 'rating', 'base64_image',
                  'is_subscribed', 'subscribe_expired', 'notification_email', 'notification_push', 'notification_inherit',
                  'is_email_verified']
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    related_user_fio = serializers.CharField(source='related_user.fio', read_only=True)
+    related_user_avatar = serializers.CharField(source='related_user.base64_image', read_only=True)
+    notification_type_display = serializers.CharField(source='get_notification_type_display', read_only=True)
+    
+    class Meta:
+        model = Notification
+        fields = ['id', 'notification_type', 'notification_type_display', 'title', 'message', 
+                 'related_user', 'related_user_fio', 'related_user_avatar', 'is_read', 'created_at']
+        read_only_fields = ['id', 'created_at']

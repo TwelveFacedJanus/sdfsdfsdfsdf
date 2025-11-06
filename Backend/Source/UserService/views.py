@@ -5,10 +5,11 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
-from .serializers import UserSignUpSerializer, UserSignInSerializer, UserSerializer, UserUpdateSerializer
-from .models import User
+from .serializers import UserSignUpSerializer, UserSignInSerializer, UserSerializer, UserUpdateSerializer, NotificationSerializer
+from .models import User, Notification
 from django.core.mail import send_mail
 from django.conf import settings
+from django.shortcuts import get_object_or_404
 import requests
 import json
 import re
@@ -927,3 +928,98 @@ def create_checkout_session(request):
             'error': 'Ошибка при создании сессии оплаты',
             'details': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_notifications(request):
+    """
+    Получить список уведомлений пользователя
+    GET /api/user/notifications/
+    """
+    try:
+        unread_only = request.query_params.get('unread_only', 'false').lower() == 'true'
+        limit = request.query_params.get('limit')
+        
+        notifications = Notification.objects.filter(user=request.user)
+        
+        if unread_only:
+            notifications = notifications.filter(is_read=False)
+        
+        notifications = notifications.order_by('-created_at')
+        
+        if limit:
+            try:
+                limit = int(limit)
+                notifications = notifications[:limit]
+            except ValueError:
+                pass
+        
+        serializer = NotificationSerializer(notifications, many=True)
+        
+        # Подсчитываем непрочитанные
+        unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
+        
+        return Response({
+            'notifications': serializer.data,
+            'count': len(serializer.data),
+            'unread_count': unread_count
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        return Response({
+            'error': 'Ошибка при получении уведомлений',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def mark_notification_read(request, notification_id):
+    """
+    Отметить уведомление как прочитанное
+    POST /api/user/notifications/{notification_id}/read/
+    """
+    try:
+        notification = get_object_or_404(
+            Notification,
+            id=notification_id,
+            user=request.user
+        )
+        notification.is_read = True
+        notification.save()
+        
+        return Response({
+            'message': 'Уведомление отмечено как прочитанное'
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        return Response({
+            'error': 'Ошибка при обновлении уведомления',
+            'details': str(e)
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def mark_all_notifications_read(request):
+    """
+    Отметить все уведомления как прочитанные
+    POST /api/user/notifications/mark-all-read/
+    """
+    try:
+        updated_count = Notification.objects.filter(
+            user=request.user,
+            is_read=False
+        ).update(is_read=True)
+        
+        return Response({
+            'message': 'Все уведомления отмечены как прочитанные',
+            'updated_count': updated_count
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        return Response({
+            'error': 'Ошибка при обновлении уведомлений',
+            'details': str(e)
+        }, status=status.HTTP_400_BAD_REQUEST)

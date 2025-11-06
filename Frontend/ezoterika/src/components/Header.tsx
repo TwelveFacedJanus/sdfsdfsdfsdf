@@ -1,10 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getUserData } from '@/lib/api';
+import { getUserData, getNotifications, markNotificationRead, markAllNotificationsRead, getStoredTokens } from '@/lib/api';
 
 interface HeaderProps {
   activePage?: string;
+}
+
+interface Notification {
+  id: string;
+  notification_type: string;
+  notification_type_display: string;
+  title: string;
+  message: string;
+  related_user?: string;
+  related_user_fio?: string;
+  related_user_avatar?: string;
+  is_read: boolean;
+  created_at: string;
 }
 
 export default function Header({ activePage = 'contents' }: HeaderProps) {
@@ -13,11 +26,80 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userData, setUserData] = useState<any>(null);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
 
   useEffect(() => {
     const user = getUserData();
     setUserData(user);
+    
+    // Загружаем уведомления если пользователь авторизован
+    const { accessToken } = getStoredTokens();
+    if (accessToken) {
+      loadNotifications();
+    }
   }, []);
+
+  useEffect(() => {
+    // Обновляем уведомления при открытии меню
+    if (isNotificationsOpen) {
+      loadNotifications();
+    }
+  }, [isNotificationsOpen]);
+
+  const loadNotifications = async () => {
+    setIsLoadingNotifications(true);
+    try {
+      const response = await getNotifications(false, 10); // Получаем последние 10 уведомлений
+      setNotifications(response.notifications || []);
+      setUnreadCount(response.unread_count || 0);
+    } catch (error) {
+      console.error('Error loading notifications:', error);
+      setNotifications([]);
+      setUnreadCount(0);
+    } finally {
+      setIsLoadingNotifications(false);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllNotificationsRead();
+      // Обновляем локально
+      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
+  };
+
+  const handleNotificationClick = async (notification: Notification) => {
+    if (!notification.is_read) {
+      try {
+        await markNotificationRead(notification.id);
+        // Обновляем локально
+        setNotifications(prev => 
+          prev.map(n => n.id === notification.id ? { ...n, is_read: true } : n)
+        );
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      } catch (error) {
+        console.error('Error marking notification as read:', error);
+      }
+    }
+  };
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) return 'только что';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} мин. назад`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} ч. назад`;
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} дн. назад`;
+    return date.toLocaleDateString('ru-RU');
+  };
 
   const navigationItems = [
     { id: 'catalog', label: 'Каталог', href: '/catalog' },
@@ -78,9 +160,11 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
                 </svg>
               </button>
               {/* Бейдж с количеством уведомлений */}
-              <span className="absolute -top-2 -right-2 bg-[#8A63D2] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                99
-              </span>
+              {unreadCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-[#8A63D2] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
 
               {/* Выпадающее меню уведомлений */}
               {isNotificationsOpen && (
@@ -88,59 +172,62 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
                   {/* Заголовок */}
                   <div className="flex justify-between items-center p-4 border-b border-gray-700">
                     <h3 className="text-white font-semibold">Уведомления</h3>
-                    <button className="text-gray-400 hover:text-white text-sm transition-colors">
-                      Отметить все как прочитано
-                    </button>
+                    {unreadCount > 0 && (
+                      <button 
+                        onClick={handleMarkAllRead}
+                        className="text-gray-400 hover:text-white text-sm transition-colors"
+                      >
+                        Отметить все как прочитано
+                      </button>
+                    )}
                   </div>
 
                   {/* Список уведомлений */}
                   <div className="max-h-96 overflow-y-auto">
-                    {/* Уведомление 1 */}
-                    <div className="p-4 border-b border-gray-700 hover:bg-[#2A2A2A] transition-colors cursor-pointer">
-                      <div className="flex items-start space-x-3">
-                        <img 
-                          src="https://ui-avatars.com/api/?name=Nikita+Belkin&background=random" 
-                          alt="Nikita Belkin"
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                        <div className="flex-1">
-                          <p className="text-white text-sm">Никита Белкин выложил новый пост</p>
-                          <p className="text-gray-400 text-xs mt-1">2 часа назад</p>
-                        </div>
-                        <div className="w-2 h-2 bg-[#8A63D2] rounded-full"></div>
+                    {isLoadingNotifications ? (
+                      <div className="p-4 text-center">
+                        <div className="text-gray-400 text-sm">Загрузка...</div>
                       </div>
-                    </div>
-
-                    {/* Уведомление 2 */}
-                    <div className="p-4 border-b border-gray-700 hover:bg-[#2A2A2A] transition-colors cursor-pointer">
-                      <div className="flex items-start space-x-3">
-                        <img 
-                          src="https://ui-avatars.com/api/?name=Maria+Konovalova&background=random" 
-                          alt="Maria Konovalova"
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                        <div className="flex-1">
-                          <p className="text-white text-sm">Мария Коновалова подписалась на вас</p>
-                          <p className="text-gray-400 text-xs mt-1">1 день назад</p>
+                    ) : notifications.length > 0 ? (
+                      notifications.map((notification) => (
+                        <div
+                          key={notification.id}
+                          onClick={() => handleNotificationClick(notification)}
+                          className={`p-4 border-b border-gray-700 hover:bg-[#2A2A2A] transition-colors cursor-pointer ${
+                            !notification.is_read ? 'bg-[#2A2A2A]/50' : ''
+                          }`}
+                        >
+                          <div className="flex items-start space-x-3">
+                            {notification.related_user_avatar ? (
+                              <img 
+                                src={notification.related_user_avatar.startsWith('data:') 
+                                  ? notification.related_user_avatar 
+                                  : `data:image/png;base64,${notification.related_user_avatar}`}
+                                alt={notification.related_user_fio || 'Пользователь'}
+                                className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0">
+                                <svg className="w-6 h-6 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                </svg>
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white text-sm">{notification.message}</p>
+                              <p className="text-gray-400 text-xs mt-1">{formatTimeAgo(notification.created_at)}</p>
+                            </div>
+                            {!notification.is_read && (
+                              <div className="w-2 h-2 bg-[#8A63D2] rounded-full flex-shrink-0 mt-1"></div>
+                            )}
+                          </div>
                         </div>
-                        <div className="w-2 h-2 bg-[#8A63D2] rounded-full"></div>
+                      ))
+                    ) : (
+                      <div className="p-4 text-center">
+                        <div className="text-gray-400 text-sm">Нет уведомлений</div>
                       </div>
-                    </div>
-
-                    {/* Уведомление 3 */}
-                    <div className="p-4 hover:bg-[#2A2A2A] transition-colors cursor-pointer">
-                      <div className="flex items-start space-x-3">
-                        <img 
-                          src="https://ui-avatars.com/api/?name=Alina+Rulicheva&background=random" 
-                          alt="Alina Rulicheva"
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                        <div className="flex-1">
-                          <p className="text-white text-sm">Алина Руличева отписалась от вас</p>
-                          <p className="text-gray-400 text-xs mt-1">Неделю назад</p>
-                        </div>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               )}

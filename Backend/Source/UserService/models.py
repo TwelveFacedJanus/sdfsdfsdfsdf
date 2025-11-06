@@ -76,3 +76,50 @@ class User(AbstractUser):
             if timezone.now() <= self.password_reset_token_expires:
                 return True
         return False
+
+
+class Notification(models.Model):
+    """
+    Уведомления пользователей
+    """
+    TYPE_CHOICES = [
+        ('subscription', 'Подписка'),
+        ('unsubscription', 'Отписка'),
+        ('new_post', 'Новый пост'),
+        ('comment', 'Комментарий'),
+        ('other', 'Другое'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='notifications',
+        verbose_name="Пользователь"
+    )
+    notification_type = models.CharField(
+        max_length=20,
+        choices=TYPE_CHOICES,
+        default='other',
+        verbose_name="Тип уведомления"
+    )
+    title = models.CharField(max_length=255, verbose_name="Заголовок")
+    message = models.TextField(verbose_name="Сообщение")
+    related_user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='related_notifications',
+        verbose_name="Связанный пользователь"
+    )
+    is_read = models.BooleanField(default=False, verbose_name="Прочитано")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    
+    class Meta:
+        verbose_name = "Уведомление"
+        verbose_name_plural = "Уведомления"
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.user.fio} - {self.title}"
