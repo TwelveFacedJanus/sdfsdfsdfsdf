@@ -121,32 +121,54 @@ def google_auth(request):
     Авторизация через Google OAuth
     POST /api/user/google-auth/
     """
-    credential = request.data.get('credential')
+    # Получаем и валидируем credential
+    credential = None
+    try:
+        credential = request.data.get('credential')
+        
+        if not credential:
+            return Response({
+                'error': 'Google credential не предоставлен'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Валидация формата credential (JWT токен должен иметь формат: header.payload.signature)
+        if not isinstance(credential, str):
+            return Response({
+                'error': 'Google credential должен быть строкой'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Проверка формата JWT токена (три части, разделенные точками)
+        jwt_pattern = r'^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*$'
+        if not re.match(jwt_pattern, credential):
+            return Response({
+                'error': 'Неверный формат Google credential. Ожидается JWT токен.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Проверка минимальной длины (JWT токены обычно длиннее 100 символов)
+        if len(credential) < 100:
+            return Response({
+                'error': 'Google credential слишком короткий'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Логируем начало обработки (без credential для безопасности)
+        print(f"Google auth: Processing credential (length: {len(credential)})")
     
+    except Exception as validation_error:
+        print(f"Google auth validation error: {validation_error}")
+        import traceback
+        traceback.print_exc()
+        return Response({
+            'error': 'Ошибка при валидации Google credential',
+            'details': str(validation_error)
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Проверяем, что credential был успешно получен
     if not credential:
         return Response({
-            'error': 'Google credential не предоставлен'
+            'error': 'Google credential не был получен'
         }, status=status.HTTP_400_BAD_REQUEST)
     
-    # Валидация формата credential (JWT токен должен иметь формат: header.payload.signature)
-    if not isinstance(credential, str):
-        return Response({
-            'error': 'Google credential должен быть строкой'
-        }, status=status.HTTP_400_BAD_REQUEST)
-    
-    # Проверка формата JWT токена (три части, разделенные точками)
-    jwt_pattern = r'^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*$'
-    if not re.match(jwt_pattern, credential):
-        return Response({
-            'error': 'Неверный формат Google credential. Ожидается JWT токен.'
-        }, status=status.HTTP_400_BAD_REQUEST)
-    
-    # Проверка минимальной длины (JWT токены обычно длиннее 100 символов)
-    if len(credential) < 100:
-        return Response({
-            'error': 'Google credential слишком короткий'
-        }, status=status.HTTP_400_BAD_REQUEST)
-    
+    # Обрабатываем валидированный credential
     try:
         # Верифицируем токен Google через Google API
         # В реальном приложении нужно использовать библиотеку google-auth
@@ -221,31 +243,60 @@ def google_auth(request):
             user.save()
         
         # Генерируем JWT токены
-        refresh = RefreshToken.for_user(user)
-        access_token = refresh.access_token
+        try:
+            refresh = RefreshToken.for_user(user)
+            access_token = refresh.access_token
+        except Exception as token_error:
+            print(f"JWT token generation error: {token_error}")
+            import traceback
+            traceback.print_exc()
+            return Response({
+                'error': 'Ошибка при генерации токенов',
+                'details': str(token_error)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-        return Response({
-            'message': 'Успешная авторизация через Google',
-            'user': UserSerializer(user).data,
-            'tokens': {
-                'access': str(access_token),
-                'refresh': str(refresh)
-            }
-        }, status=status.HTTP_200_OK)
+        try:
+            return Response({
+                'message': 'Успешная авторизация через Google',
+                'user': UserSerializer(user).data,
+                'tokens': {
+                    'access': str(access_token),
+                    'refresh': str(refresh)
+                }
+            }, status=status.HTTP_200_OK)
+        except Exception as response_error:
+            print(f"Response creation error: {response_error}")
+            import traceback
+            traceback.print_exc()
+            return Response({
+                'error': 'Ошибка при формировании ответа',
+                'details': str(response_error)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
     except requests.RequestException as e:
         print(f"Google token verification error: {e}")
+        import traceback
+        traceback.print_exc()
         return Response({
             'error': 'Ошибка при верификации Google токена',
             'details': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    except User.DoesNotExist:
+        # Это не должно происходить здесь, так как мы обрабатываем это выше
+        print("Unexpected User.DoesNotExist error")
+        import traceback
+        traceback.print_exc()
+        return Response({
+            'error': 'Ошибка при работе с пользователем',
+            'details': 'Пользователь не найден'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     except Exception as e:
-        print(f"Google auth error: {e}")
+        print(f"Google auth error: {type(e).__name__}: {e}")
         import traceback
         traceback.print_exc()
         return Response({
             'error': 'Ошибка при авторизации через Google',
-            'details': str(e)
+            'details': f"{type(e).__name__}: {str(e)}"
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
