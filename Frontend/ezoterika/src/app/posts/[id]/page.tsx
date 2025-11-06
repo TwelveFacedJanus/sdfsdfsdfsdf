@@ -618,24 +618,45 @@ export default function PostDetailPage() {
 
                   {/* Контент из блоков */}
                   <div className="space-y-8">
-                    {contentBlocks.length > 0 ? (
-                      contentBlocks.map((block, index) => {
-                        console.log(`Rendering block ${index}:`, block); // Отладка
-                        return renderContentBlock(block, index);
-                      })
-                    ) : (
-                      <div className="text-center py-12">
-                        <div className="text-gray-400 text-lg mb-4">
-                          Контент не найден
+                    {(() => {
+                      // Фильтруем блоки, убирая дублирование заголовка и описания
+                      const filteredBlocks = contentBlocks.filter((block, index) => {
+                        // Пропускаем первый блок, если он дублирует заголовок и описание поста
+                        if (index === 0 && block.type === 'section') {
+                          const titleMatches = block.title === post.title || block.title === '';
+                          const descriptionMatches = block.description === post.preview_text || 
+                                                    block.description.trim() === post.preview_text.trim();
+                          // Если заголовок и описание совпадают, пропускаем этот блок
+                          if (titleMatches && descriptionMatches) {
+                            return false;
+                          }
+                          // Если только заголовок совпадает и описание пустое, тоже пропускаем
+                          if (titleMatches && (!block.description || block.description.trim() === '')) {
+                            return false;
+                          }
+                        }
+                        return true;
+                      });
+                      
+                      return filteredBlocks.length > 0 ? (
+                        filteredBlocks.map((block, index) => {
+                          console.log(`Rendering block ${index}:`, block); // Отладка
+                          return renderContentBlock(block, index);
+                        })
+                      ) : (
+                        <div className="text-center py-12">
+                          <div className="text-gray-400 text-lg mb-4">
+                            Контент не найден
+                          </div>
+                          <p className="text-gray-500">
+                            Этот пост не содержит контента или произошла ошибка при загрузке.
+                          </p>
+                          <div className="mt-4 text-xs text-gray-600">
+                            Debug: contentBlocks.length = {contentBlocks.length}
+                          </div>
                         </div>
-                        <p className="text-gray-500">
-                          Этот пост не содержит контента или произошла ошибка при загрузке.
-                        </p>
-                        <div className="mt-4 text-xs text-gray-600">
-                          Debug: contentBlocks.length = {contentBlocks.length}
-                        </div>
-                      </div>
-                    )}
+                      );
+                    })()}
                   </div>
 
                 </article>
@@ -648,21 +669,39 @@ export default function PostDetailPage() {
                     Содержание:
                   </h3>
                   <nav className="space-y-2 lg:space-y-3">
-                    {contentBlocks.length > 0 ? (
-                      contentBlocks.map((block, index) => (
-                        <a 
-                          key={index}
-                          href={`#block-${index}`}
-                          className="block text-white hover:text-cyan-300 transition-colors text-xs sm:text-sm"
-                        >
-                          {block.title || `${block.type} блок ${index + 1}`}
-                        </a>
-                      ))
-                    ) : (
-                      <div className="text-gray-400 text-xs sm:text-sm">
-                        Содержание недоступно
-                      </div>
-                    )}
+                    {(() => {
+                      // Фильтруем блоки так же, как в основном контенте
+                      const filteredBlocks = contentBlocks.filter((block, index) => {
+                        if (index === 0 && block.type === 'section') {
+                          const titleMatches = block.title === post.title || block.title === '';
+                          const descriptionMatches = block.description === post.preview_text || 
+                                                    block.description.trim() === post.preview_text.trim();
+                          if (titleMatches && descriptionMatches) {
+                            return false;
+                          }
+                          if (titleMatches && (!block.description || block.description.trim() === '')) {
+                            return false;
+                          }
+                        }
+                        return true;
+                      });
+                      
+                      return filteredBlocks.length > 0 ? (
+                        filteredBlocks.map((block, index) => (
+                          <a 
+                            key={index}
+                            href={`#block-${index}`}
+                            className="block text-white hover:text-cyan-300 transition-colors text-xs sm:text-sm"
+                          >
+                            {block.title || `${block.type} блок ${index + 1}`}
+                          </a>
+                        ))
+                      ) : (
+                        <div className="text-gray-400 text-xs sm:text-sm">
+                          Содержание недоступно
+                        </div>
+                      );
+                    })()}
                   </nav>
                 </div>
               </div>
