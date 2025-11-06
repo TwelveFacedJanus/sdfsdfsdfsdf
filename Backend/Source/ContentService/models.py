@@ -28,7 +28,7 @@ class Post(models.Model):
     title = models.CharField(max_length=255, verbose_name="Заголовок")
     preview_text = models.TextField(verbose_name="Превью текст")
     content = models.TextField(default="", verbose_name="Markdown контент")
-    preview_image_link = models.URLField(max_length=500, null=True, blank=True, verbose_name="Ссылка на превью изображение")
+    preview_image_link = models.TextField(null=True, blank=True, verbose_name="Ссылка на превью изображение (URL или base64)")
     rating = models.DecimalField(
         max_digits=2, 
         decimal_places=1, 

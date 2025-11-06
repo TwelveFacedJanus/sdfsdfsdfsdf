@@ -19,11 +19,13 @@ class PostSerializer(serializers.ModelSerializer):
 
 
 class PostCreateSerializer(serializers.ModelSerializer):
+    preview_image_link = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    
     class Meta:
         model = Post
         fields = ['title', 'preview_text', 'content', 'preview_image_link', 'rating', 'category', 'is_published', 'accessibility']
         extra_kwargs = {
-            'preview_image_link': {'required': False, 'allow_null': True},
+            'preview_image_link': {'required': False, 'allow_null': True, 'allow_blank': True},
             'rating': {'required': False},
             'is_published': {'required': False},
             'accessibility': {'required': False},
