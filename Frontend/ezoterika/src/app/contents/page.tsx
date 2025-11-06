@@ -265,7 +265,7 @@ export default function ContentsPage() {
             </div>
             
             {/* Правая боковая панель */}
-            <div className="hidden lg:block lg:w-80">
+            <div className="hidden lg:block lg:w-80 lg:pl-4 xl:pl-6">
               <RightSidebar />
             </div>
           </div>

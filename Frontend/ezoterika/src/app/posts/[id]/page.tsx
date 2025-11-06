@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { getStoredTokens, getPostDetail, checkSubscriptionStatus, subscribeToUser, unsubscribeFromUser, getUserData, ratePost, getUserPostRating } from '@/lib/api';
 import Header from '@/components/Header';
@@ -245,6 +245,164 @@ export default function PostDetailPage() {
     router.back();
   };
 
+  // Функция для рендеринга markdown в React элементы
+  const renderMarkdown = (text: string): React.ReactNode[] => {
+    if (!text) return [];
+    
+    // Разбиваем текст на строки
+    const lines = text.split('\n');
+    const result: React.ReactNode[] = [];
+    
+    lines.forEach((line, lineIndex) => {
+      if (!line.trim()) {
+        result.push(<br key={`br-${lineIndex}`} />);
+        return;
+      }
+      
+      // Обработка заголовков
+      if (line.trim().startsWith('### ')) {
+        const content = line.trim().substring(4);
+        result.push(
+          <h3 key={`h3-${lineIndex}`} className="text-xl font-bold text-white mt-4 mb-2">
+            {renderInlineMarkdown(content)}
+          </h3>
+        );
+        return;
+      }
+      
+      if (line.trim().startsWith('## ')) {
+        const content = line.trim().substring(3);
+        result.push(
+          <h2 key={`h2-${lineIndex}`} className="text-2xl font-bold text-white mt-4 mb-2">
+            {renderInlineMarkdown(content)}
+          </h2>
+        );
+        return;
+      }
+      
+      if (line.trim().startsWith('# ')) {
+        const content = line.trim().substring(2);
+        result.push(
+          <h1 key={`h1-${lineIndex}`} className="text-3xl font-bold text-white mt-4 mb-2">
+            {renderInlineMarkdown(content)}
+          </h1>
+        );
+        return;
+      }
+      
+      // Обработка списков
+      if (line.trim().startsWith('- ') || line.trim().startsWith('* ')) {
+        const content = line.trim().substring(2);
+        result.push(
+          <p key={`li-${lineIndex}`} className="mb-1 ml-4">
+            • {renderInlineMarkdown(content)}
+          </p>
+        );
+        return;
+      }
+      
+      // Обычный параграф
+      result.push(
+        <p key={`p-${lineIndex}`} className="mb-2">
+          {renderInlineMarkdown(line)}
+        </p>
+      );
+    });
+    
+    return result;
+  };
+
+  // Функция для рендеринга inline markdown (жирный, курсив, подчеркивание)
+  const renderInlineMarkdown = (text: string): React.ReactNode[] => {
+    if (!text) return [];
+    
+    const parts: React.ReactNode[] = [];
+    let currentIndex = 0;
+    let keyCounter = 0;
+    
+    // Регулярные выражения для различных markdown элементов
+    const patterns = [
+      // HTML теги подчеркивания
+      { regex: /<u>(.*?)<\/u>/g, render: (match: string, content: string) => (
+        <u key={`u-${keyCounter++}`} className="underline">{renderInlineMarkdown(content)}</u>
+      )},
+      // Жирный текст **text**
+      { regex: /\*\*(.*?)\*\*/g, render: (match: string, content: string) => (
+        <strong key={`strong-${keyCounter++}`} className="font-bold">{renderInlineMarkdown(content)}</strong>
+      )},
+      // Курсив *text* (но не **text**)
+      { regex: /(?<!\*)\*([^*\n]+?)\*(?!\*)/g, render: (match: string, content: string) => (
+        <em key={`em-${keyCounter++}`} className="italic">{content}</em>
+      )},
+      // Ссылки [text](url)
+      { regex: /\[([^\]]+)\]\(([^)]+)\)/g, render: (match: string, text: string, url: string) => (
+        <a 
+          key={`link-${keyCounter++}`} 
+          href={url} 
+          className="text-blue-400 hover:text-blue-300 underline" 
+          target="_blank" 
+          rel="noopener noreferrer"
+        >
+          {text}
+        </a>
+      )},
+    ];
+    
+    // Находим все совпадения
+    const matches: Array<{ start: number; end: number; render: () => React.ReactNode }> = [];
+    
+    patterns.forEach(pattern => {
+      let match: RegExpExecArray | null;
+      const regex = new RegExp(pattern.regex.source, pattern.regex.flags);
+      while ((match = regex.exec(text)) !== null) {
+        matches.push({
+          start: match.index,
+          end: match.index + match[0].length,
+          render: () => pattern.render(match![0], match![1] || '', match![2] || '')
+        });
+      }
+    });
+    
+    // Сортируем совпадения по позиции
+    matches.sort((a, b) => a.start - b.start);
+    
+    // Удаляем перекрывающиеся совпадения (оставляем первые)
+    const filteredMatches: typeof matches = [];
+    let lastEnd = 0;
+    matches.forEach(match => {
+      if (match.start >= lastEnd) {
+        filteredMatches.push(match);
+        lastEnd = match.end;
+      }
+    });
+    
+    // Строим результат
+    filteredMatches.forEach((match, index) => {
+      // Добавляем текст до совпадения
+      if (match.start > currentIndex) {
+        const plainText = text.substring(currentIndex, match.start);
+        if (plainText) {
+          parts.push(<span key={`text-${keyCounter++}`}>{plainText}</span>);
+        }
+      }
+      
+      // Добавляем отрендеренный элемент
+      parts.push(match.render());
+      
+      currentIndex = match.end;
+    });
+    
+    // Добавляем оставшийся текст
+    if (currentIndex < text.length) {
+      const plainText = text.substring(currentIndex);
+      if (plainText) {
+        parts.push(<span key={`text-${keyCounter++}`}>{plainText}</span>);
+      }
+    }
+    
+    return parts.length > 0 ? parts : [text];
+  };
+
   const handleSubscribe = async () => {
     if (!post || !post.author) return;
     
@@ -311,27 +469,11 @@ export default function PostDetailPage() {
         return (
           <div key={index} id={`block-${index}`} className="mb-8">
             <h2 className="text-3xl font-bold text-white mb-4">
-              {block.title}
+              {renderInlineMarkdown(block.title).map((node, idx) => <React.Fragment key={idx}>{node}</React.Fragment>)}
             </h2>
             {block.description && (
-              <div className="text-lg text-gray-300 mb-6 whitespace-pre-wrap leading-relaxed">
-                {block.description.split('\n').map((line, idx) => {
-                  // Обработка markdown форматирования
-                  if (line.trim().startsWith('**') && line.trim().endsWith('**')) {
-                    const text = line.trim().replace(/\*\*/g, '');
-                    return <p key={idx} className="font-bold mb-2">{text}</p>;
-                  } else if (line.trim().startsWith('*') && line.trim().endsWith('*') && !line.trim().startsWith('**')) {
-                    const text = line.trim().replace(/\*/g, '');
-                    return <p key={idx} className="italic mb-2">{text}</p>;
-                  } else if (line.trim().startsWith('<u>') && line.trim().endsWith('</u>')) {
-                    const text = line.trim().replace(/<\/?u>/g, '');
-                    return <p key={idx} className="underline mb-2">{text}</p>;
-                  } else if (line.trim().startsWith('- ')) {
-                    return <p key={idx} className="mb-1 ml-4">• {line.trim().substring(2)}</p>;
-                  } else {
-                    return <p key={idx} className="mb-2">{line || '\u00A0'}</p>;
-                  }
-                })}
+              <div className="text-lg text-gray-300 mb-6 leading-relaxed">
+                {renderMarkdown(block.description)}
               </div>
             )}
             {block.image && (
@@ -356,28 +498,12 @@ export default function PostDetailPage() {
           <div key={index} id={`block-${index}`} className="mb-8">
             {block.title && (
               <h3 className="text-2xl font-semibold text-white mb-4">
-                {block.title}
+                {renderInlineMarkdown(block.title).map((node, idx) => <React.Fragment key={idx}>{node}</React.Fragment>)}
               </h3>
             )}
             <div className="prose prose-invert max-w-none">
-              <div className="text-white leading-relaxed whitespace-pre-wrap text-lg">
-                {block.description.split('\n').map((line, idx) => {
-                  // Обработка markdown форматирования
-                  if (line.trim().startsWith('**') && line.trim().endsWith('**')) {
-                    const text = line.trim().replace(/\*\*/g, '');
-                    return <p key={idx} className="font-bold mb-2">{text}</p>;
-                  } else if (line.trim().startsWith('*') && line.trim().endsWith('*') && !line.trim().startsWith('**')) {
-                    const text = line.trim().replace(/\*/g, '');
-                    return <p key={idx} className="italic mb-2">{text}</p>;
-                  } else if (line.trim().startsWith('<u>') && line.trim().endsWith('</u>')) {
-                    const text = line.trim().replace(/<\/?u>/g, '');
-                    return <p key={idx} className="underline mb-2">{text}</p>;
-                  } else if (line.trim().startsWith('- ')) {
-                    return <p key={idx} className="mb-1 ml-4">• {line.trim().substring(2)}</p>;
-                  } else {
-                    return <p key={idx} className="mb-2">{line || '\u00A0'}</p>;
-                  }
-                })}
+              <div className="text-white leading-relaxed text-lg">
+                {renderMarkdown(block.description)}
               </div>
             </div>
             {block.image && (
