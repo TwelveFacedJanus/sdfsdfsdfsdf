@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { getStoredTokens, getPostDetail } from '@/lib/api';
+import { getStoredTokens, getPostDetail, checkSubscriptionStatus, subscribeToUser, unsubscribeFromUser, getUserData } from '@/lib/api';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Comments from '@/components/Comments';
@@ -31,9 +31,11 @@ interface PostDetail {
   views_count: number;
   category: string;
   category_display: string;
+  author: string; // ID автора
   author_fio: string;
   author_nickname?: string;
   author_rating: number;
+  author_avatar?: string;
   created_at: string;
   updated_at: string;
   is_published: boolean;
@@ -48,12 +50,21 @@ export default function PostDetailPage() {
   const [post, setPost] = useState<PostDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>([]);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isSubscriptionLoading, setIsSubscriptionLoading] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const { accessToken } = getStoredTokens();
     if (!accessToken) {
       router.push('/signIn');
       return;
+    }
+
+    // Получаем ID текущего пользователя
+    const userData = getUserData();
+    if (userData && userData.id) {
+      setCurrentUserId(userData.id);
     }
 
     if (postId) {
@@ -189,6 +200,21 @@ export default function PostDetailPage() {
       } else {
         console.log('No content in response'); // Отладка
       }
+
+      // Проверяем статус подписки, если есть автор
+      // Получаем currentUserId из localStorage, так как он может быть еще не установлен в state
+      const userData = getUserData();
+      const userId = userData?.id || currentUserId;
+      
+      if (postData.author && userId && postData.author !== userId) {
+        try {
+          const statusResponse = await checkSubscriptionStatus(postData.author);
+          setIsSubscribed(statusResponse.is_subscribed || false);
+        } catch (error) {
+          console.error('Error checking subscription status:', error);
+          setIsSubscribed(false);
+        }
+      }
     } catch (error) {
       console.error('Error loading post:', error);
       setError('Ошибка загрузки поста');
@@ -199,6 +225,35 @@ export default function PostDetailPage() {
 
   const handleBackClick = () => {
     router.back();
+  };
+
+  const handleSubscribe = async () => {
+    if (!post || !post.author) return;
+    
+    // Получаем ID текущего пользователя
+    const userData = getUserData();
+    const userId = userData?.id || currentUserId;
+    
+    // Не позволяем подписаться на самого себя
+    if (!userId || userId === post.author) {
+      return;
+    }
+
+    setIsSubscriptionLoading(true);
+    try {
+      if (isSubscribed) {
+        await unsubscribeFromUser(post.author);
+        setIsSubscribed(false);
+      } else {
+        await subscribeToUser(post.author);
+        setIsSubscribed(true);
+      }
+    } catch (error: any) {
+      console.error('Subscription error:', error);
+      setError(error.message || 'Ошибка при изменении подписки');
+    } finally {
+      setIsSubscriptionLoading(false);
+    }
   };
 
   const renderContentBlock = (block: ContentBlock, index: number) => {
@@ -494,6 +549,57 @@ export default function PostDetailPage() {
                     <p className="text-base sm:text-lg lg:text-xl text-gray-300 mb-4 sm:mb-6">
                       {post.preview_text}
                     </p>
+                    
+                    {/* Информация об авторе и кнопка подписки */}
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+                      <div className="flex items-center gap-3">
+                        {post.author_avatar && (
+                          <img 
+                            src={`data:image/png;base64,${post.author_avatar}`} 
+                            alt={post.author_fio}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        )}
+                        <div>
+                          <p className="text-white font-medium">{post.author_fio}</p>
+                          {post.author_nickname && (
+                            <p className="text-gray-400 text-sm">@{post.author_nickname}</p>
+                          )}
+                          <p className="text-gray-500 text-xs">Рейтинг: {post.author_rating}</p>
+                        </div>
+                      </div>
+                      
+                      {/* Кнопка подписки - показываем только если это не наш пост */}
+                      {(() => {
+                        const userData = getUserData();
+                        const userId = userData?.id || currentUserId;
+                        return userId && post.author && userId !== post.author;
+                      })() && (
+                        <button
+                          onClick={handleSubscribe}
+                          disabled={isSubscriptionLoading}
+                          className={`px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
+                            isSubscribed
+                              ? 'bg-gray-600 text-white hover:bg-gray-700'
+                              : 'bg-[#8A63D2] text-white hover:bg-[#7A53C2]'
+                          } ${isSubscriptionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                          {isSubscriptionLoading ? (
+                            <span className="flex items-center gap-2">
+                              <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Загрузка...
+                            </span>
+                          ) : isSubscribed ? (
+                            '✓ Подписан'
+                          ) : (
+                            '+ Подписаться'
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Главное изображение */}

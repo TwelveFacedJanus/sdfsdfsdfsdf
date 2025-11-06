@@ -37,6 +37,14 @@ export const API_ENDPOINTS = {
     TOP_POSTS: `${API_BASE_URL}/api/content/top-posts/`,
     COMMENTS: `${API_BASE_URL}/api/content/comments/`,
   },
+  SUBSCRIPTIONS: {
+    SUBSCRIBE: `${API_BASE_URL}/api/user-favourites/subscribe/`,
+    UNSUBSCRIBE: `${API_BASE_URL}/api/user-favourites/unsubscribe/`,
+    STATUS: `${API_BASE_URL}/api/user-favourites/status/`,
+    SUBSCRIPTIONS: `${API_BASE_URL}/api/user-favourites/subscriptions/`,
+    SUBSCRIBERS: `${API_BASE_URL}/api/user-favourites/subscribers/`,
+    STATS: `${API_BASE_URL}/api/user-favourites/stats/`,
+  },
 } as const;
 
 // Types
@@ -463,4 +471,42 @@ export const getTopUsers = async (limit: number = 3): Promise<any[]> => {
     ];
     return mockUsers.slice(0, limit);
   }
+};
+
+// Subscription API Functions
+export const subscribeToUser = async (userId: string): Promise<any> => {
+  return apiRequest(API_ENDPOINTS.SUBSCRIPTIONS.SUBSCRIBE, {
+    method: 'POST',
+    body: JSON.stringify({ subscribed_to: userId }),
+  });
+};
+
+export const unsubscribeFromUser = async (userId: string): Promise<any> => {
+  return apiRequest(`${API_ENDPOINTS.SUBSCRIPTIONS.UNSUBSCRIBE}${userId}/`, {
+    method: 'DELETE',
+  });
+};
+
+export const checkSubscriptionStatus = async (userId: string): Promise<{ is_subscribed: boolean }> => {
+  return apiRequest(`${API_ENDPOINTS.SUBSCRIPTIONS.STATUS}${userId}/`, {
+    method: 'GET',
+  });
+};
+
+export const getUserSubscriptions = async (): Promise<any> => {
+  return apiRequest(API_ENDPOINTS.SUBSCRIPTIONS.SUBSCRIPTIONS, {
+    method: 'GET',
+  });
+};
+
+export const getUserSubscribers = async (): Promise<any> => {
+  return apiRequest(API_ENDPOINTS.SUBSCRIPTIONS.SUBSCRIBERS, {
+    method: 'GET',
+  });
+};
+
+export const getSubscriptionStats = async (): Promise<any> => {
+  return apiRequest(API_ENDPOINTS.SUBSCRIPTIONS.STATS, {
+    method: 'GET',
+  });
 };
