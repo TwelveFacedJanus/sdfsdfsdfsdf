@@ -162,29 +162,84 @@ export default function SignInPage() {
 
     loadGoogleScript();
 
-    // Загружаем Facebook SDK
-    const loadFacebookScript = () => {
-      if (window.FB) {
+    // Загружаем и инициализируем Facebook SDK
+    const loadFacebookSDK = () => {
+      // Проверяем, не загружен ли уже скрипт
+      if (document.querySelector('script[src*="connect.facebook.net"]')) {
+        // Скрипт уже загружается или загружен
+        if (window.FB) {
+          initFacebookSDK();
+        } else {
+          // Ждем загрузки SDK
+          const checkFB = setInterval(() => {
+            if (window.FB) {
+              initFacebookSDK();
+              clearInterval(checkFB);
+            }
+          }, 100);
+          setTimeout(() => clearInterval(checkFB), 5000);
+        }
         return;
       }
 
+      // Сохраняем старый обработчик, если он есть
+      const oldFbAsyncInit = window.fbAsyncInit;
+
       window.fbAsyncInit = () => {
+        try {
+          if (window.FB) {
+            initFacebookSDK();
+          }
+        } catch (error) {
+          console.error('Error in fbAsyncInit:', error);
+        }
+        
+        // Вызываем старый обработчик, если он был
+        if (oldFbAsyncInit && typeof oldFbAsyncInit === 'function') {
+          oldFbAsyncInit();
+        }
+      };
+
+      // Загружаем скрипт Facebook SDK
+      const script = document.createElement('script');
+      script.src = 'https://connect.facebook.net/ru_RU/sdk.js';
+      script.async = true;
+      script.defer = true;
+      script.id = 'facebook-jssdk';
+      script.onload = () => {
+        // Если fbAsyncInit не вызвался автоматически, вызываем вручную через небольшую задержку
+        setTimeout(() => {
+          if (window.fbAsyncInit && !window.FB) {
+            window.fbAsyncInit();
+          }
+        }, 100);
+      };
+      script.onerror = () => {
+        console.error('Failed to load Facebook SDK');
+        setError('Не удалось загрузить Facebook SDK. Проверьте подключение к интернету.');
+      };
+      document.body.appendChild(script);
+    };
+
+    const initFacebookSDK = () => {
+      try {
+        if (!window.FB) {
+          console.warn('Facebook SDK not available');
+          return;
+        }
         window.FB.init({
           appId: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '',
           cookie: true,
           xfbml: true,
           version: 'v18.0'
         });
-      };
-
-      const script = document.createElement('script');
-      script.src = 'https://connect.facebook.net/ru_RU/sdk.js';
-      script.async = true;
-      script.defer = true;
-      document.body.appendChild(script);
+        console.log('Facebook SDK initialized');
+      } catch (error) {
+        console.error('Error initializing Facebook SDK:', error);
+      }
     };
 
-    loadFacebookScript();
+    loadFacebookSDK();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -194,14 +249,13 @@ export default function SignInPage() {
 
     try {
       if (!window.FB) {
-        setError('Facebook SDK не загружен');
+        setError('Facebook SDK не загружен. Пожалуйста, обновите страницу.');
         setIsFacebookLoading(false);
         return;
       }
 
       window.FB.login((response: any) => {
         if (response.authResponse) {
-          // Пользователь успешно авторизовался
           const accessToken = response.authResponse.accessToken;
           handleFacebookCallback(accessToken);
         } else {
