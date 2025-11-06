@@ -264,7 +264,7 @@ export default function PostDetailPage() {
         const content = line.trim().substring(4);
         result.push(
           <h3 key={`h3-${lineIndex}`} className="text-xl font-bold text-white mt-4 mb-2">
-            {renderInlineMarkdown(content)}
+            {renderInlineMarkdown(content).map((node, idx) => <React.Fragment key={idx}>{node}</React.Fragment>)}
           </h3>
         );
         return;
@@ -274,7 +274,7 @@ export default function PostDetailPage() {
         const content = line.trim().substring(3);
         result.push(
           <h2 key={`h2-${lineIndex}`} className="text-2xl font-bold text-white mt-4 mb-2">
-            {renderInlineMarkdown(content)}
+            {renderInlineMarkdown(content).map((node, idx) => <React.Fragment key={idx}>{node}</React.Fragment>)}
           </h2>
         );
         return;
@@ -284,7 +284,7 @@ export default function PostDetailPage() {
         const content = line.trim().substring(2);
         result.push(
           <h1 key={`h1-${lineIndex}`} className="text-3xl font-bold text-white mt-4 mb-2">
-            {renderInlineMarkdown(content)}
+            {renderInlineMarkdown(content).map((node, idx) => <React.Fragment key={idx}>{node}</React.Fragment>)}
           </h1>
         );
         return;
@@ -295,7 +295,7 @@ export default function PostDetailPage() {
         const content = line.trim().substring(2);
         result.push(
           <p key={`li-${lineIndex}`} className="mb-1 ml-4">
-            • {renderInlineMarkdown(content)}
+            • {renderInlineMarkdown(content).map((node, idx) => <React.Fragment key={idx}>{node}</React.Fragment>)}
           </p>
         );
         return;
@@ -304,7 +304,7 @@ export default function PostDetailPage() {
       // Обычный параграф
       result.push(
         <p key={`p-${lineIndex}`} className="mb-2">
-          {renderInlineMarkdown(line)}
+          {renderInlineMarkdown(line).map((node, idx) => <React.Fragment key={idx}>{node}</React.Fragment>)}
         </p>
       );
     });
@@ -600,11 +600,15 @@ export default function PostDetailPage() {
                 )}
                 <div>
                   <h3 className="text-lg font-semibold text-white">
-                    {block.title || (block.type === 'audio' ? 'Аудио файлы' : 'PDF Документ')}
+                    {block.title ? (
+                      renderInlineMarkdown(block.title).map((node, idx) => <React.Fragment key={idx}>{node}</React.Fragment>)
+                    ) : (
+                      block.type === 'audio' ? 'Аудио файлы' : 'PDF Документ'
+                    )}
                   </h3>
                   {block.description && (
                     <p className="text-gray-300 text-sm">
-                      {block.description}
+                      {renderInlineMarkdown(block.description).map((node, idx) => <React.Fragment key={idx}>{node}</React.Fragment>)}
                     </p>
                   )}
                 </div>
@@ -657,7 +661,7 @@ export default function PostDetailPage() {
             )}
             {block.title && (
               <h3 className="text-2xl font-semibold text-white mb-4">
-                {block.title}
+                {renderInlineMarkdown(block.title).map((node, idx) => <React.Fragment key={idx}>{node}</React.Fragment>)}
               </h3>
             )}
           </div>
@@ -777,10 +781,10 @@ export default function PostDetailPage() {
                   {/* Заголовок */}
                   <div className="mb-4 sm:mb-6 lg:mb-8">
                     <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 sm:mb-4 leading-tight">
-                      {post.title}
+                      {renderInlineMarkdown(post.title).map((node, idx) => <React.Fragment key={idx}>{node}</React.Fragment>)}
                     </h1>
                     <p className="text-base sm:text-lg lg:text-xl text-gray-300 mb-4 sm:mb-6">
-                      {post.preview_text}
+                      {renderInlineMarkdown(post.preview_text).map((node, idx) => <React.Fragment key={idx}>{node}</React.Fragment>)}
                     </p>
                     
                     {/* Информация об авторе и кнопка подписки */}

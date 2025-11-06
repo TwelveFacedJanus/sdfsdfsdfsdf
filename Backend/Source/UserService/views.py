@@ -860,9 +860,10 @@ def get_top_users(request):
             users_data.append({
                 'id': str(user.id),
                 'fio': user.fio,
-                'rating': user.rating,
+                'rating': float(user.rating) if user.rating else 0.0,
                 'nickname': user.nickname,
                 'country': user.country,
+                'base64_image': user.base64_image if user.base64_image else None,
             })
         
         return Response({
