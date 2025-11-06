@@ -1,7 +1,6 @@
 'use client';
 
-'use client';
-
+import React from 'react';
 import { useRouter } from 'next/navigation';
 
 interface ArticleCardProps {
@@ -38,6 +37,126 @@ export default function ArticleCard({
       router.push(`/posts/${id}`);
     }
   };
+
+  // Функция для рендеринга inline markdown (жирный, курсив, подчеркивание)
+  const renderInlineMarkdown = (text: string): React.ReactNode[] => {
+    if (!text || typeof text !== 'string') return [text || ''];
+    
+    const parts: React.ReactNode[] = [];
+    let currentIndex = 0;
+    let keyCounter = 0;
+    
+    // Регулярные выражения для различных markdown элементов
+    const patterns = [
+      // HTML теги подчеркивания
+      { 
+        regex: /<u>(.*?)<\/u>/g, 
+        render: (match: RegExpExecArray) => {
+          if (!match || match.length < 2) return null;
+          const content = (match[1] !== undefined && match[1] !== null) ? match[1] : '';
+          return (
+            <u key={`u-${keyCounter++}`} className="underline">
+              {renderInlineMarkdown(content).map((node, idx) => <React.Fragment key={idx}>{node}</React.Fragment>)}
+            </u>
+          );
+        }
+      },
+      // Жирный текст **text**
+      { 
+        regex: /\*\*(.*?)\*\*/g, 
+        render: (match: RegExpExecArray) => {
+          if (!match || match.length < 2) return null;
+          const content = (match[1] !== undefined && match[1] !== null) ? match[1] : '';
+          return (
+            <strong key={`strong-${keyCounter++}`} className="font-bold">
+              {renderInlineMarkdown(content).map((node, idx) => <React.Fragment key={idx}>{node}</React.Fragment>)}
+            </strong>
+          );
+        }
+      },
+      // Курсив *text* (но не **text**)
+      { 
+        regex: /(?<!\*)\*([^*\n]+?)\*(?!\*)/g, 
+        render: (match: RegExpExecArray) => {
+          if (!match || match.length < 2) return null;
+          const content = (match[1] !== undefined && match[1] !== null) ? match[1] : '';
+          return <em key={`em-${keyCounter++}`} className="italic">{content}</em>;
+        }
+      },
+    ];
+    
+    // Находим все совпадения
+    const matches: Array<{ start: number; end: number; render: () => React.ReactNode | null }> = [];
+    
+    patterns.forEach(pattern => {
+      let match: RegExpExecArray | null;
+      const regex = new RegExp(pattern.regex.source, pattern.regex.flags);
+      regex.lastIndex = 0;
+      while ((match = regex.exec(text)) !== null) {
+        if (match && match.index !== undefined) {
+          matches.push({
+            start: match.index,
+            end: match.index + (match[0]?.length || 0),
+            render: () => pattern.render(match!)
+          });
+        }
+        if (regex.lastIndex === match.index) {
+          regex.lastIndex++;
+        }
+      }
+    });
+    
+    // Сортируем совпадения по позиции
+    matches.sort((a, b) => a.start - b.start);
+    
+    // Удаляем перекрывающиеся совпадения
+    const filteredMatches: typeof matches = [];
+    let lastEnd = 0;
+    matches.forEach(match => {
+      if (match.start >= lastEnd) {
+        filteredMatches.push(match);
+        lastEnd = match.end;
+      }
+    });
+    
+    // Строим результат
+    filteredMatches.forEach((match) => {
+      if (match.start > currentIndex) {
+        const plainText = text.substring(currentIndex, match.start);
+        if (plainText) {
+          parts.push(<span key={`text-${keyCounter++}`}>{plainText}</span>);
+        }
+      }
+      
+      try {
+        const rendered = match.render();
+        if (rendered !== null && rendered !== undefined) {
+          parts.push(rendered);
+        } else {
+          const plainText = text.substring(match.start, match.end);
+          if (plainText) {
+            parts.push(<span key={`text-${keyCounter++}`}>{plainText}</span>);
+          }
+        }
+      } catch (error) {
+        const plainText = text.substring(match.start, match.end);
+        if (plainText) {
+          parts.push(<span key={`text-${keyCounter++}`}>{plainText}</span>);
+        }
+      }
+      
+      currentIndex = match.end;
+    });
+    
+    if (currentIndex < text.length) {
+      const plainText = text.substring(currentIndex);
+      if (plainText) {
+        parts.push(<span key={`text-${keyCounter++}`}>{plainText}</span>);
+      }
+    }
+    
+    return parts.length > 0 ? parts : [text];
+  };
   return (
     <article 
       className="rounded-2xl sm:rounded-[32px] border mb-[10px] transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl w-full p-4 sm:p-6 lg:p-8"
@@ -54,7 +173,7 @@ export default function ArticleCard({
           className="text-base sm:text-lg lg:text-xl font-bold text-white flex-1 cursor-pointer hover:text-[#8A63D2] transition-colors"
           onClick={handleClick}
         >
-          {title}
+          {renderInlineMarkdown(title).map((node, idx) => <React.Fragment key={idx}>{node}</React.Fragment>)}
         </h2>
         {category && (
           <span className="ml-0 sm:ml-4 px-2 sm:px-3 py-1 bg-[#8A63D2] text-white text-xs sm:text-sm rounded-full whitespace-nowrap">
@@ -93,9 +212,9 @@ export default function ArticleCard({
         </div>
       )}
       
-      <p className="text-gray-300 mb-3 sm:mb-4 leading-relaxed text-sm sm:text-base">
-        {description}
-      </p>
+      <div className="text-gray-300 mb-3 sm:mb-4 leading-relaxed text-sm sm:text-base">
+        {renderInlineMarkdown(description).map((node, idx) => <React.Fragment key={idx}>{node}</React.Fragment>)}
+      </div>
       
       {image && (
         <div className="mb-3 sm:mb-4">
