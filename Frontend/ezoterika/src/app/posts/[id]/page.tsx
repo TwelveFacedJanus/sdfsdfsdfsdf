@@ -603,16 +603,18 @@ export default function PostDetailPage() {
                   </div>
 
                   {/* Главное изображение */}
-                  <div className="mb-4 sm:mb-6 lg:mb-8">
-                    <img 
-                      src={post.preview_image_link || "/api/placeholder/800/400"} 
-                      alt={post.title}
-                      className="w-full h-48 sm:h-64 lg:h-96 object-cover rounded-lg"
-                    />
-                    <p className="text-xs sm:text-sm text-gray-400 mt-2 text-center">
-                      Иллюстрация: {post.author_fio}
-                    </p>
-                  </div>
+                  {post.preview_image_link && (
+                    <div className="mb-4 sm:mb-6 lg:mb-8">
+                      <img 
+                        src={post.preview_image_link} 
+                        alt={post.title}
+                        className="w-full h-48 sm:h-64 lg:h-96 object-cover rounded-lg"
+                      />
+                      <p className="text-xs sm:text-sm text-gray-400 mt-2 text-center">
+                        Иллюстрация: {post.author_fio}
+                      </p>
+                    </div>
+                  )}
 
                   {/* Контент из блоков */}
                   <div className="space-y-8">

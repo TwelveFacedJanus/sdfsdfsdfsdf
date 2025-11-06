@@ -8,7 +8,7 @@ interface ArticleCardProps {
   id?: string;
   title: string;
   description: string;
-  image: string;
+  image?: string | null;
   rating: number;
   comments: number;
   views: number;
@@ -97,13 +97,15 @@ export default function ArticleCard({
         {description}
       </p>
       
-      <div className="mb-3 sm:mb-4">
-        <img 
-          src={image} 
-          alt={title}
-          className="w-full h-32 sm:h-40 lg:h-48 object-cover rounded-lg"
-        />
-      </div>
+      {image && (
+        <div className="mb-3 sm:mb-4">
+          <img 
+            src={image} 
+            alt={title}
+            className="w-full h-32 sm:h-40 lg:h-48 object-cover rounded-lg"
+          />
+        </div>
+      )}
       
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
         <button 

@@ -168,7 +168,7 @@ export default function ContentsPage() {
                         id={post.id}
                         title={post.title}
                         description={post.preview_text}
-                        image={post.preview_image_link || "/api/placeholder/600/200"}
+                        image={post.preview_image_link || undefined}
                         rating={parseFloat(post.rating)}
                         comments={post.comments_count}
                         views={post.views_count}
