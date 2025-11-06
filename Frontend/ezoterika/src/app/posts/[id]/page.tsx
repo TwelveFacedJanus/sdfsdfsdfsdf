@@ -314,7 +314,7 @@ export default function PostDetailPage() {
 
   // Функция для рендеринга inline markdown (жирный, курсив, подчеркивание)
   const renderInlineMarkdown = (text: string): React.ReactNode[] => {
-    if (!text) return [];
+    if (!text || typeof text !== 'string') return [text || ''];
     
     const parts: React.ReactNode[] = [];
     let currentIndex = 0;
@@ -323,29 +323,56 @@ export default function PostDetailPage() {
     // Регулярные выражения для различных markdown элементов
     const patterns = [
       // HTML теги подчеркивания
-      { regex: /<u>(.*?)<\/u>/g, render: (match: string, content: string) => (
-        <u key={`u-${keyCounter++}`} className="underline">{renderInlineMarkdown(content)}</u>
-      )},
+      { 
+        regex: /<u>(.*?)<\/u>/g, 
+        render: (match: RegExpExecArray) => {
+          const content = match[1] || '';
+          return (
+            <u key={`u-${keyCounter++}`} className="underline">
+              {renderInlineMarkdown(content).map((node, idx) => <React.Fragment key={idx}>{node}</React.Fragment>)}
+            </u>
+          );
+        }
+      },
       // Жирный текст **text**
-      { regex: /\*\*(.*?)\*\*/g, render: (match: string, content: string) => (
-        <strong key={`strong-${keyCounter++}`} className="font-bold">{renderInlineMarkdown(content)}</strong>
-      )},
+      { 
+        regex: /\*\*(.*?)\*\*/g, 
+        render: (match: RegExpExecArray) => {
+          const content = match[1] || '';
+          return (
+            <strong key={`strong-${keyCounter++}`} className="font-bold">
+              {renderInlineMarkdown(content).map((node, idx) => <React.Fragment key={idx}>{node}</React.Fragment>)}
+            </strong>
+          );
+        }
+      },
       // Курсив *text* (но не **text**)
-      { regex: /(?<!\*)\*([^*\n]+?)\*(?!\*)/g, render: (match: string, content: string) => (
-        <em key={`em-${keyCounter++}`} className="italic">{content}</em>
-      )},
+      { 
+        regex: /(?<!\*)\*([^*\n]+?)\*(?!\*)/g, 
+        render: (match: RegExpExecArray) => {
+          const content = match[1] || '';
+          return <em key={`em-${keyCounter++}`} className="italic">{content}</em>;
+        }
+      },
       // Ссылки [text](url)
-      { regex: /\[([^\]]+)\]\(([^)]+)\)/g, render: (match: string, text: string, url: string) => (
-        <a 
-          key={`link-${keyCounter++}`} 
-          href={url} 
-          className="text-blue-400 hover:text-blue-300 underline" 
-          target="_blank" 
-          rel="noopener noreferrer"
-        >
-          {text}
-        </a>
-      )},
+      { 
+        regex: /\[([^\]]+)\]\(([^)]+)\)/g, 
+        render: (match: RegExpExecArray) => {
+          const linkText = match[1] || '';
+          const url = match[2] || '#';
+          return (
+            <a 
+              key={`link-${keyCounter++}`} 
+              href={url} 
+              className="text-blue-400 hover:text-blue-300 underline" 
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              {linkText}
+            </a>
+          );
+        }
+      },
     ];
     
     // Находим все совпадения
@@ -354,12 +381,20 @@ export default function PostDetailPage() {
     patterns.forEach(pattern => {
       let match: RegExpExecArray | null;
       const regex = new RegExp(pattern.regex.source, pattern.regex.flags);
+      // Сбрасываем lastIndex для глобального регулярного выражения
+      regex.lastIndex = 0;
       while ((match = regex.exec(text)) !== null) {
-        matches.push({
-          start: match.index,
-          end: match.index + match[0].length,
-          render: () => pattern.render(match![0], match![1] || '', match![2] || '')
-        });
+        if (match && match.index !== undefined) {
+          matches.push({
+            start: match.index,
+            end: match.index + (match[0]?.length || 0),
+            render: () => pattern.render(match!)
+          });
+        }
+        // Предотвращаем бесконечный цикл
+        if (regex.lastIndex === match.index) {
+          regex.lastIndex++;
+        }
       }
     });
     
@@ -377,7 +412,7 @@ export default function PostDetailPage() {
     });
     
     // Строим результат
-    filteredMatches.forEach((match, index) => {
+    filteredMatches.forEach((match) => {
       // Добавляем текст до совпадения
       if (match.start > currentIndex) {
         const plainText = text.substring(currentIndex, match.start);
@@ -387,7 +422,16 @@ export default function PostDetailPage() {
       }
       
       // Добавляем отрендеренный элемент
-      parts.push(match.render());
+      try {
+        parts.push(match.render());
+      } catch (error) {
+        console.error('Error rendering markdown element:', error);
+        // В случае ошибки добавляем исходный текст
+        const plainText = text.substring(match.start, match.end);
+        if (plainText) {
+          parts.push(<span key={`text-${keyCounter++}`}>{plainText}</span>);
+        }
+      }
       
       currentIndex = match.end;
     });
