@@ -40,6 +40,8 @@ export const API_ENDPOINTS = {
     TOP_POSTS: `${API_BASE_URL}/api/content/top-posts/`,
     COMMENTS: `${API_BASE_URL}/api/content/comments/`,
     PRIVACY_POLICY: `${API_BASE_URL}/api/content/privacy-policy/`,
+    RATE_POST: `${API_BASE_URL}/api/content/posts/`,
+    GET_USER_RATING: `${API_BASE_URL}/api/content/posts/`,
   },
   SUBSCRIPTIONS: {
     SUBSCRIBE: `${API_BASE_URL}/api/user-favourites/subscribe/`,
@@ -542,6 +544,20 @@ export const markAllNotificationsRead = async (): Promise<any> => {
 // Privacy Policy API Functions
 export const getPrivacyPolicy = async (): Promise<any> => {
   return apiRequest(API_ENDPOINTS.CONTENT.PRIVACY_POLICY, {
+    method: 'GET',
+  });
+};
+
+// Post Rating API Functions
+export const ratePost = async (postId: string, rating: number): Promise<any> => {
+  return apiRequest(`${API_ENDPOINTS.CONTENT.RATE_POST}${postId}/rate/`, {
+    method: 'POST',
+    body: JSON.stringify({ rating }),
+  });
+};
+
+export const getUserPostRating = async (postId: string): Promise<any> => {
+  return apiRequest(`${API_ENDPOINTS.CONTENT.GET_USER_RATING}${postId}/my-rating/`, {
     method: 'GET',
   });
 };

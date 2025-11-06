@@ -112,6 +112,70 @@ class Comment(models.Model):
         return self.parent is not None
 
 
+class PostRating(models.Model):
+    """
+    Оценки пользователей для постов
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        related_name='ratings',
+        verbose_name="Пост"
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='post_ratings',
+        verbose_name="Пользователь"
+    )
+    rating = models.DecimalField(
+        max_digits=2,
+        decimal_places=1,
+        validators=[MinValueValidator(0.0), MaxValueValidator(5.0)],
+        verbose_name="Оценка"
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
+    
+    class Meta:
+        verbose_name = "Оценка поста"
+        verbose_name_plural = "Оценки постов"
+        unique_together = ['post', 'user']  # Один пользователь может оценить пост только один раз
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.user.fio} - {self.rating}/5 - {self.post.title}"
+    
+    def save(self, *args, **kwargs):
+        """Пересчитываем средний рейтинг поста при сохранении"""
+        super().save(*args, **kwargs)
+        self.update_post_rating()
+    
+    def delete(self, *args, **kwargs):
+        """Пересчитываем средний рейтинг поста при удалении"""
+        post = self.post  # Сохраняем ссылку на пост перед удалением
+        super().delete(*args, **kwargs)
+        # Обновляем рейтинг после удаления
+        from django.db.models import Avg
+        avg_rating = PostRating.objects.filter(post=post).aggregate(Avg('rating'))['rating__avg']
+        if avg_rating is not None:
+            post.rating = round(avg_rating, 1)
+        else:
+            post.rating = 0.0
+        post.save(update_fields=['rating'])
+    
+    def update_post_rating(self):
+        """Обновляет средний рейтинг поста на основе всех оценок"""
+        from django.db.models import Avg
+        avg_rating = PostRating.objects.filter(post=self.post).aggregate(Avg('rating'))['rating__avg']
+        if avg_rating is not None:
+            self.post.rating = round(avg_rating, 1)
+        else:
+            self.post.rating = 0.0
+        self.post.save(update_fields=['rating'])
+
+
 class PrivacyPolicy(models.Model):
     """
     Политика конфиденциальности

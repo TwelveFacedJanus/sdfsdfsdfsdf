@@ -3,7 +3,7 @@ from django.utils.html import format_html
 from django.urls import reverse
 from django.db import models
 from django.forms import Textarea
-from .models import Post, Comment, PrivacyPolicy
+from .models import Post, Comment, PrivacyPolicy, PostRating
 
 
 @admin.register(Post)
@@ -204,3 +204,14 @@ class PrivacyPolicyAdmin(admin.ModelAdmin):
         if obj.is_active:
             PrivacyPolicy.objects.filter(is_active=True).exclude(pk=obj.pk).update(is_active=False)
         super().save_model(request, obj, form, change)
+
+
+@admin.register(PostRating)
+class PostRatingAdmin(admin.ModelAdmin):
+    list_display = ('post', 'user', 'rating', 'created_at', 'updated_at')
+    list_filter = ('rating', 'created_at', 'post__category')
+    search_fields = ('post__title', 'user__email', 'user__fio')
+    readonly_fields = ('id', 'created_at', 'updated_at')
+    ordering = ('-created_at',)
+    date_hierarchy = 'created_at'
+    list_per_page = 50

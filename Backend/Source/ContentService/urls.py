@@ -34,4 +34,10 @@ urlpatterns = [
     # Privacy Policy URLs
     path('privacy-policy/', views.get_privacy_policy, name='get_privacy_policy'),
     path('privacy-policy', views.get_privacy_policy, name='get_privacy_policy_no_slash'),
+    
+    # Post Rating URLs
+    path('posts/<uuid:post_id>/rate/', views.rate_post, name='rate_post'),
+    path('posts/<uuid:post_id>/rate', views.rate_post, name='rate_post_no_slash'),
+    path('posts/<uuid:post_id>/my-rating/', views.get_user_post_rating, name='get_user_post_rating'),
+    path('posts/<uuid:post_id>/my-rating', views.get_user_post_rating, name='get_user_post_rating_no_slash'),
 ]

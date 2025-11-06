@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
-from .models import Post, Comment, PrivacyPolicy
+from .models import Post, Comment, PrivacyPolicy, PostRating
 from .serializers import PostSerializer, PostCreateSerializer, PostListSerializer, PostUpdateSerializer, CommentSerializer, CommentCreateSerializer, CommentListSerializer
 
 
@@ -414,5 +414,102 @@ def get_privacy_policy(request):
     except Exception as e:
         return Response({
             'error': 'Ошибка при получении политики конфиденциальности',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def rate_post(request, post_id):
+    """
+    Поставить оценку посту (0-5)
+    POST /api/content/posts/{post_id}/rate/
+    Body: {"rating": 4.5}
+    """
+    try:
+        post = get_object_or_404(Post, id=post_id, is_published=True)
+        
+        # Не позволяем автору оценивать свой пост
+        if post.author == request.user:
+            return Response({
+                'error': 'Вы не можете оценить свой собственный пост'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        rating_value = request.data.get('rating')
+        
+        if rating_value is None:
+            return Response({
+                'error': 'Оценка не указана'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            rating_value = float(rating_value)
+        except (ValueError, TypeError):
+            return Response({
+                'error': 'Оценка должна быть числом'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        if rating_value < 0 or rating_value > 5:
+            return Response({
+                'error': 'Оценка должна быть от 0 до 5'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Создаем или обновляем оценку
+        post_rating, created = PostRating.objects.update_or_create(
+            post=post,
+            user=request.user,
+            defaults={'rating': rating_value}
+        )
+        
+        # Обновляем средний рейтинг поста
+        from django.db.models import Avg
+        avg_rating = PostRating.objects.filter(post=post).aggregate(Avg('rating'))['rating__avg']
+        if avg_rating is not None:
+            post.rating = round(avg_rating, 1)
+        else:
+            post.rating = 0.0
+        post.save(update_fields=['rating'])
+        
+        return Response({
+            'message': 'Оценка успешно сохранена',
+            'rating': float(post_rating.rating),
+            'average_rating': float(post.rating),
+            'is_new': created
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return Response({
+            'error': 'Ошибка при сохранении оценки',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_post_rating(request, post_id):
+    """
+    Получить оценку текущего пользователя для поста
+    GET /api/content/posts/{post_id}/my-rating/
+    """
+    try:
+        post = get_object_or_404(Post, id=post_id)
+        
+        try:
+            post_rating = PostRating.objects.get(post=post, user=request.user)
+            return Response({
+                'rating': float(post_rating.rating),
+                'has_rated': True
+            }, status=status.HTTP_200_OK)
+        except PostRating.DoesNotExist:
+            return Response({
+                'rating': None,
+                'has_rated': False
+            }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        return Response({
+            'error': 'Ошибка при получении оценки',
             'details': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
