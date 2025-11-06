@@ -660,6 +660,11 @@ export default function PostDetailPage() {
                   </div>
 
                 </article>
+
+                {/* Секция комментариев */}
+                <div className="mt-6 sm:mt-8 lg:mt-12">
+                  <Comments postId={postId} />
+                </div>
               </div>
 
               {/* Боковая панель с содержанием */}
@@ -705,11 +710,6 @@ export default function PostDetailPage() {
                   </nav>
                 </div>
               </div>
-            </div>
-
-            {/* Секция комментариев */}
-            <div className="mt-6 sm:mt-8 lg:mt-12">
-              <Comments postId={postId} />
             </div>
           </div>
         </div>
