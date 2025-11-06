@@ -473,16 +473,16 @@ function ProfileContent() {
             <div className="bg-[#1A1826] rounded-lg p-4 sm:p-6 lg:p-8 w-full max-w-[886px]">
               <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 lg:gap-8 w-full">
                 {/* Левая навигация */}
-                <div className="w-full lg:w-64 flex flex-row lg:flex-col overflow-x-auto lg:overflow-x-visible" style={{ minHeight: 'auto', gap: '8px' }}>
+                <div className="w-full lg:w-64 flex flex-row lg:flex-col overflow-x-auto lg:overflow-x-visible scrollbar-hide" style={{ minHeight: 'auto', gap: '8px', WebkitOverflowScrolling: 'touch' }}>
                   <nav className="flex lg:flex-col space-x-2 lg:space-x-0 lg:space-y-2 mb-0 lg:mb-8">
                     {navigationItems.map((item) => (
                       <button
                         key={item.id}
                         onClick={() => setActiveSection(item.id)}
-                        className={`whitespace-nowrap text-left py-2 lg:py-3 transition-colors text-sm lg:text-base ${
+                        className={`whitespace-nowrap text-left py-2.5 lg:py-3 transition-colors text-sm lg:text-base touch-manipulation ${
                           activeSection === item.id
                             ? 'bg-[#8A63D2] text-white px-3 lg:px-4 rounded-lg'
-                            : 'text-gray-400 hover:bg-[#333333] px-3 lg:px-4 rounded-lg'
+                            : 'text-gray-400 active:bg-[#333333] sm:hover:bg-[#333333] px-3 lg:px-4 rounded-lg'
                         }`}
                       >
                         {item.label}

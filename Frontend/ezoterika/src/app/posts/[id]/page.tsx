@@ -651,84 +651,86 @@ export default function PostDetailPage() {
                     </div>
                     
                     {/* Рейтинг поста */}
-                    <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        <span className="text-gray-400 text-sm sm:text-base">Рейтинг поста:</span>
-                        <div className="flex items-center gap-1">
-                          {[...Array(5)].map((_, i) => {
-                            const starValue = i + 1;
-                            const currentRating = parseFloat(post.rating) || 0;
-                            const isFilled = starValue <= currentRating;
-                            return (
-                              <svg
-                                key={i}
-                                className={`w-5 h-5 ${isFilled ? 'text-yellow-400' : 'text-gray-600'}`}
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                              >
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                              </svg>
-                            );
-                          })}
-                        </div>
-                        <span className="text-white text-sm sm:text-base font-medium">
-                          {parseFloat(post.rating).toFixed(1)}
-                        </span>
-                      </div>
-                      
-                      {/* Оценка пользователя - показываем только если это не наш пост */}
-                      {(() => {
-                        const userData = getUserData();
-                        const userId = userData?.id || currentUserId;
-                        return userId && post.author && userId !== post.author;
-                      })() && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-gray-400 text-sm sm:text-base">Ваша оценка:</span>
-                          <div 
-                            className="flex items-center gap-1"
-                            onMouseLeave={() => setHoveredRating(null)}
-                          >
+                    <div className="mt-4 sm:mt-6 flex flex-col gap-3 sm:gap-4">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-gray-400 text-xs sm:text-sm">Рейтинг поста:</span>
+                          <div className="flex items-center gap-0.5 sm:gap-1">
                             {[...Array(5)].map((_, i) => {
                               const starValue = i + 1;
-                              const displayRating = hoveredRating !== null ? hoveredRating : userRating;
-                              const isFilled = displayRating !== null && starValue <= displayRating;
-                              const isHovered = hoveredRating !== null && starValue <= hoveredRating;
-                              
+                              const currentRating = parseFloat(post.rating) || 0;
+                              const isFilled = starValue <= currentRating;
                               return (
-                                <button
+                                <svg
                                   key={i}
-                                  type="button"
-                                  onClick={() => handleRatePost(starValue)}
-                                  disabled={isRatingLoading}
-                                  onMouseEnter={() => setHoveredRating(starValue)}
-                                  className={`transition-colors ${
-                                    isRatingLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:scale-110'
-                                  }`}
+                                  className={`w-4 h-4 sm:w-5 sm:h-5 ${isFilled ? 'text-yellow-400' : 'text-gray-600'}`}
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
                                 >
-                                  <svg
-                                    className={`w-6 h-6 transition-colors ${
-                                      isFilled || isHovered
-                                        ? 'text-yellow-400'
-                                        : 'text-gray-600 hover:text-yellow-300'
-                                    }`}
-                                    fill={isFilled || isHovered ? "currentColor" : "none"}
-                                    stroke={isFilled || isHovered ? "currentColor" : "currentColor"}
-                                    strokeWidth={isFilled || isHovered ? 0 : 1.5}
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                                  </svg>
-                                </button>
+                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
                               );
                             })}
                           </div>
-                          {userRating !== null && (
-                            <span className="text-gray-400 text-xs sm:text-sm">
-                              ({userRating.toFixed(1)})
-                            </span>
-                          )}
+                          <span className="text-white text-xs sm:text-sm font-medium">
+                            {parseFloat(post.rating).toFixed(1)}
+                          </span>
                         </div>
-                      )}
+                        
+                        {/* Оценка пользователя - показываем только если это не наш пост */}
+                        {(() => {
+                          const userData = getUserData();
+                          const userId = userData?.id || currentUserId;
+                          return userId && post.author && userId !== post.author;
+                        })() && (
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-gray-400 text-xs sm:text-sm">Ваша оценка:</span>
+                            <div 
+                              className="flex items-center gap-0.5 sm:gap-1"
+                              onMouseLeave={() => setHoveredRating(null)}
+                            >
+                              {[...Array(5)].map((_, i) => {
+                                const starValue = i + 1;
+                                const displayRating = hoveredRating !== null ? hoveredRating : userRating;
+                                const isFilled = displayRating !== null && starValue <= displayRating;
+                                const isHovered = hoveredRating !== null && starValue <= hoveredRating;
+                                
+                                return (
+                                  <button
+                                    key={i}
+                                    type="button"
+                                    onClick={() => handleRatePost(starValue)}
+                                    disabled={isRatingLoading}
+                                    onMouseEnter={() => setHoveredRating(starValue)}
+                                    className={`transition-colors touch-manipulation ${
+                                      isRatingLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer active:scale-110 sm:hover:scale-110'
+                                    }`}
+                                  >
+                                    <svg
+                                      className={`w-5 h-5 sm:w-6 sm:h-6 transition-colors ${
+                                        isFilled || isHovered
+                                          ? 'text-yellow-400'
+                                          : 'text-gray-600 active:text-yellow-300 sm:hover:text-yellow-300'
+                                      }`}
+                                      fill={isFilled || isHovered ? "currentColor" : "none"}
+                                      stroke={isFilled || isHovered ? "currentColor" : "currentColor"}
+                                      strokeWidth={isFilled || isHovered ? 0 : 1.5}
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                    </svg>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            {userRating !== null && (
+                              <span className="text-gray-400 text-xs">
+                                ({userRating.toFixed(1)})
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 

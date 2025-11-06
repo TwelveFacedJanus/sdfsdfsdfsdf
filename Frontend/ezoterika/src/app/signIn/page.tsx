@@ -367,10 +367,10 @@ export default function SignInPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full py-3 font-medium transition-colors text-base ${
+            className={`w-full py-3 font-medium transition-colors text-base touch-manipulation ${
               isLoading 
                 ? 'bg-gray-600 text-gray-300 cursor-not-allowed' 
-                : 'bg-[#8A63D2] text-white hover:bg-[#7A53C2]'
+                : 'bg-[#8A63D2] text-white active:bg-[#7A53C2] sm:hover:bg-[#7A53C2]'
             }`}
             style={{ borderRadius: '360px' }}
           >
@@ -392,7 +392,7 @@ export default function SignInPage() {
               type="button"
               onClick={handleFacebookAuth}
               disabled={isFacebookLoading}
-              className={`flex-1 bg-[#282440] text-white py-3 font-medium hover:bg-[#323050] transition-colors flex items-center justify-center space-x-2 text-sm ${
+              className={`flex-1 bg-[#282440] text-white py-3 font-medium active:bg-[#323050] sm:hover:bg-[#323050] transition-colors flex items-center justify-center space-x-2 text-sm touch-manipulation ${
                 isFacebookLoading ? 'opacity-50 cursor-not-allowed' : ''
               }`}
               style={{ borderRadius: '360px' }}

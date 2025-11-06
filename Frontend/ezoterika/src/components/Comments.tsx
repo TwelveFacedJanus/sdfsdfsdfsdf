@@ -199,16 +199,16 @@ export default function Comments({ postId }: CommentsProps) {
   }
 
   return (
-    <div className="bg-[#1A1826] rounded-lg p-6">
+    <div className="bg-[#1A1826] rounded-lg p-4 sm:p-6">
       {/* Заголовок и сортировка */}
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-bold text-white">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
+        <h3 className="text-lg sm:text-xl font-bold text-white">
           Комментарии {comments.length}
         </h3>
         <select
           value={sortOrder}
           onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
-          className="px-3 py-1 bg-[#2A1F3D] border border-gray-600 rounded text-white text-sm focus:outline-none focus:border-[#8A63D2]"
+          className="px-3 py-2 bg-[#2A1F3D] border border-gray-600 rounded text-white text-xs sm:text-sm focus:outline-none focus:border-[#8A63D2] w-full sm:w-auto"
         >
           <option value="newest">Сначала новые</option>
           <option value="oldest">Сначала старые</option>
@@ -216,19 +216,19 @@ export default function Comments({ postId }: CommentsProps) {
       </div>
 
       {/* Форма нового комментария */}
-      <form onSubmit={handleSubmitComment} className="mb-6">
-        <div className="flex space-x-3">
+      <form onSubmit={handleSubmitComment} className="mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <input
             type="text"
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="Написать комментарий"
-            className="flex-1 px-4 py-3 bg-[#2A1F3D] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#8A63D2]"
+            className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 bg-[#2A1F3D] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#8A63D2] text-sm sm:text-base"
           />
           <button
             type="submit"
             disabled={isSubmitting || !newComment.trim()}
-            className="px-6 py-3 bg-[#8A63D2] text-white rounded-lg hover:bg-[#7A53C2] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-4 sm:px-6 py-2.5 sm:py-3 bg-[#8A63D2] text-white rounded-lg active:bg-[#7A53C2] sm:hover:bg-[#7A53C2] disabled:opacity-50 disabled:cursor-not-allowed transition-colors touch-manipulation text-sm sm:text-base whitespace-nowrap"
           >
             {isSubmitting ? 'Отправка...' : 'Отправить'}
           </button>

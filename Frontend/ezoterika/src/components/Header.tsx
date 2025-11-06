@@ -168,53 +168,53 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
 
               {/* Выпадающее меню уведомлений */}
               {isNotificationsOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-[#1A1826] border border-gray-700 rounded-lg shadow-lg z-50 opacity-0 animate-[fadeIn_0.2s_ease-out_forwards]">
+                <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-sm bg-[#1A1826] border border-gray-700 rounded-lg shadow-lg z-50 opacity-0 animate-[fadeIn_0.2s_ease-out_forwards]">
                   {/* Заголовок */}
-                  <div className="flex justify-between items-center p-4 border-b border-gray-700">
-                    <h3 className="text-white font-semibold">Уведомления</h3>
+                  <div className="flex justify-between items-center p-3 sm:p-4 border-b border-gray-700">
+                    <h3 className="text-white font-semibold text-sm sm:text-base">Уведомления</h3>
                     {unreadCount > 0 && (
                       <button 
                         onClick={handleMarkAllRead}
-                        className="text-gray-400 hover:text-white text-sm transition-colors"
+                        className="text-gray-400 hover:text-white text-xs sm:text-sm transition-colors whitespace-nowrap"
                       >
-                        Отметить все как прочитано
+                        Отметить все
                       </button>
                     )}
                   </div>
 
                   {/* Список уведомлений */}
-                  <div className="max-h-96 overflow-y-auto">
+                  <div className="max-h-[70vh] sm:max-h-96 overflow-y-auto">
                     {isLoadingNotifications ? (
-                      <div className="p-4 text-center">
-                        <div className="text-gray-400 text-sm">Загрузка...</div>
+                      <div className="p-3 sm:p-4 text-center">
+                        <div className="text-gray-400 text-xs sm:text-sm">Загрузка...</div>
                       </div>
                     ) : notifications.length > 0 ? (
                       notifications.map((notification) => (
                         <div
                           key={notification.id}
                           onClick={() => handleNotificationClick(notification)}
-                          className={`p-4 border-b border-gray-700 hover:bg-[#2A2A2A] transition-colors cursor-pointer ${
+                          className={`p-3 sm:p-4 border-b border-gray-700 hover:bg-[#2A2A2A] transition-colors cursor-pointer touch-manipulation ${
                             !notification.is_read ? 'bg-[#2A2A2A]/50' : ''
                           }`}
                         >
-                          <div className="flex items-start space-x-3">
+                          <div className="flex items-start space-x-2 sm:space-x-3">
                             {notification.related_user_avatar ? (
                               <img 
                                 src={notification.related_user_avatar.startsWith('data:') 
                                   ? notification.related_user_avatar 
                                   : `data:image/png;base64,${notification.related_user_avatar}`}
                                 alt={notification.related_user_fio || 'Пользователь'}
-                                className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover flex-shrink-0"
                               />
                             ) : (
-                              <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0">
-                                <svg className="w-6 h-6 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0">
+                                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
                                   <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                                 </svg>
                               </div>
                             )}
                             <div className="flex-1 min-w-0">
-                              <p className="text-white text-sm">{notification.message}</p>
+                              <p className="text-white text-xs sm:text-sm break-words">{notification.message}</p>
                               <p className="text-gray-400 text-xs mt-1">{formatTimeAgo(notification.created_at)}</p>
                             </div>
                             {!notification.is_read && (
@@ -224,8 +224,8 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
                         </div>
                       ))
                     ) : (
-                      <div className="p-4 text-center">
-                        <div className="text-gray-400 text-sm">Нет уведомлений</div>
+                      <div className="p-3 sm:p-4 text-center">
+                        <div className="text-gray-400 text-xs sm:text-sm">Нет уведомлений</div>
                       </div>
                     )}
                   </div>
@@ -296,12 +296,20 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
 
               {/* Выпадающее меню профиля */}
               {isProfileOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-[#171B27] border border-gray-700 rounded-md shadow-lg z-50 opacity-0 animate-[fadeIn_0.2s_ease-out_forwards]">
+                <div className="absolute right-0 mt-2 w-48 sm:w-56 bg-[#171B27] border border-gray-700 rounded-md shadow-lg z-50 opacity-0 animate-[fadeIn_0.2s_ease-out_forwards]">
                   <div className="py-1">
-                    <a href="/profile" className="block px-4 py-2 text-sm text-white hover:bg-[#333333]">
+                    <a 
+                      href="/profile" 
+                      onClick={() => setIsProfileOpen(false)}
+                      className="block px-4 py-2.5 text-sm text-white hover:bg-[#333333] transition-colors touch-manipulation"
+                    >
                       Мой профиль
                     </a>
-                    <a href="/settings" className="block px-4 py-2 text-sm text-white hover:bg-[#333333]">
+                    <a 
+                      href="/settings" 
+                      onClick={() => setIsProfileOpen(false)}
+                      className="block px-4 py-2.5 text-sm text-white hover:bg-[#333333] transition-colors touch-manipulation"
+                    >
                       Настройки
                     </a>
                     <hr className="my-1 border-gray-700" />
@@ -313,7 +321,7 @@ export default function Header({ activePage = 'contents' }: HeaderProps) {
                         localStorage.removeItem('user_data');
                         window.location.href = '/signIn';
                       }}
-                      className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-[#333333]"
+                      className="block w-full text-left px-4 py-2.5 text-sm text-white hover:bg-[#333333] transition-colors touch-manipulation"
                     >
                       Выйти
                     </button>
