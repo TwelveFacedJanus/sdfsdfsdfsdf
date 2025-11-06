@@ -11,6 +11,8 @@ from django.core.mail import send_mail
 from django.conf import settings
 import requests
 import json
+import re
+from urllib.parse import quote
 
 # Импорт stripe будет в функции для лучшей обработки ошибок
 
@@ -126,20 +128,54 @@ def google_auth(request):
             'error': 'Google credential не предоставлен'
         }, status=status.HTTP_400_BAD_REQUEST)
     
+    # Валидация формата credential (JWT токен должен иметь формат: header.payload.signature)
+    if not isinstance(credential, str):
+        return Response({
+            'error': 'Google credential должен быть строкой'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Проверка формата JWT токена (три части, разделенные точками)
+    jwt_pattern = r'^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*$'
+    if not re.match(jwt_pattern, credential):
+        return Response({
+            'error': 'Неверный формат Google credential. Ожидается JWT токен.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Проверка минимальной длины (JWT токены обычно длиннее 100 символов)
+    if len(credential) < 100:
+        return Response({
+            'error': 'Google credential слишком короткий'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
     try:
         # Верифицируем токен Google через Google API
         # В реальном приложении нужно использовать библиотеку google-auth
         # Для упрощения используем прямой запрос к Google API
-        google_verify_url = 'https://oauth2.googleapis.com/tokeninfo?id_token=' + credential
+        # URL-кодируем credential для безопасной передачи в URL
+        encoded_credential = quote(credential, safe='')
+        google_verify_url = f'https://oauth2.googleapis.com/tokeninfo?id_token={encoded_credential}'
         
         response = requests.get(google_verify_url, timeout=10)
         
         if response.status_code != 200:
+            error_details = {}
+            try:
+                error_data = response.json()
+                error_details = error_data
+            except:
+                error_details = {'message': response.text}
+            
             return Response({
-                'error': 'Неверный Google токен'
+                'error': 'Неверный Google токен',
+                'details': error_details
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        google_user_data = response.json()
+        try:
+            google_user_data = response.json()
+        except json.JSONDecodeError:
+            return Response({
+                'error': 'Неверный формат ответа от Google API'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         # Извлекаем данные пользователя
         email = google_user_data.get('email')

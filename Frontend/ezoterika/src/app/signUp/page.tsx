@@ -143,7 +143,10 @@ export default function SignUpPage() {
             }
             if (error.type === 'popup_failed_to_open') {
               setError('Не удалось открыть окно авторизации. Проверьте настройки браузера.');
-            } else if (error.type === 'unknown') {
+            } else if (error.type === 'unknown' || error.type === 'origin_mismatch') {
+              const currentOrigin = window.location.origin;
+              setError(`Ошибка origin_mismatch. Убедитесь, что "${currentOrigin}" добавлен в Authorized JavaScript origins в Google Cloud Console.`);
+            } else {
               setError('Ошибка авторизации через Google. Проверьте настройки приложения в Google Cloud Console.');
             }
           },
