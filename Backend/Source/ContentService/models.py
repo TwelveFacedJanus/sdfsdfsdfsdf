@@ -66,6 +66,31 @@ class Post(models.Model):
     
     def __str__(self):
         return f"{self.title} - {self.author.fio}"
+    
+    def save(self, *args, **kwargs):
+        """Переопределяем save для обновления рейтинга автора при изменении поста"""
+        super().save(*args, **kwargs)
+        # Обновляем рейтинг автора при сохранении поста
+        self.update_author_rating()
+    
+    def update_author_rating(self):
+        """Обновляет рейтинг автора на основе среднего рейтинга всех его опубликованных постов"""
+        from django.db.models import Avg
+        # Получаем средний рейтинг всех опубликованных постов автора
+        avg_rating = Post.objects.filter(
+            author=self.author,
+            is_published=True
+        ).aggregate(Avg('rating'))['rating__avg']
+        
+        if avg_rating is not None and avg_rating > 0:
+            # Округляем до целого числа (так как User.rating - PositiveIntegerField)
+            # Но умножаем на 10 для сохранения одного знака после запятой (4.5 -> 45)
+            # Или можно просто округлить до целого
+            self.author.rating = round(avg_rating * 10)  # Сохраняем как целое число * 10 (4.5 -> 45)
+        else:
+            self.author.rating = 0
+        
+        self.author.save(update_fields=['rating'])
 
 
 class Comment(models.Model):
@@ -155,6 +180,7 @@ class PostRating(models.Model):
     def delete(self, *args, **kwargs):
         """Пересчитываем средний рейтинг поста при удалении"""
         post = self.post  # Сохраняем ссылку на пост перед удалением
+        author = post.author  # Сохраняем ссылку на автора
         super().delete(*args, **kwargs)
         # Обновляем рейтинг после удаления
         from django.db.models import Avg
@@ -164,6 +190,8 @@ class PostRating(models.Model):
         else:
             post.rating = 0.0
         post.save(update_fields=['rating'])
+        # Обновляем рейтинг автора
+        post.update_author_rating()
     
     def update_post_rating(self):
         """Обновляет средний рейтинг поста на основе всех оценок"""
@@ -174,6 +202,8 @@ class PostRating(models.Model):
         else:
             self.post.rating = 0.0
         self.post.save(update_fields=['rating'])
+        # Обновляем рейтинг автора
+        self.post.update_author_rating()
 
 
 class PrivacyPolicy(models.Model):

@@ -860,7 +860,8 @@ def get_top_users(request):
             users_data.append({
                 'id': str(user.id),
                 'fio': user.fio,
-                'rating': float(user.rating) if user.rating else 0.0,
+                # Рейтинг хранится как целое число * 10 (4.5 -> 45), поэтому делим на 10
+                'rating': float(user.rating) / 10.0 if user.rating else 0.0,
                 'nickname': user.nickname,
                 'country': user.country,
                 'base64_image': user.base64_image if user.base64_image else None,
