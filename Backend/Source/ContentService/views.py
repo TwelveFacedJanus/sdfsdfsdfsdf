@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
-from .models import Post, Comment
+from .models import Post, Comment, PrivacyPolicy
 from .serializers import PostSerializer, PostCreateSerializer, PostListSerializer, PostUpdateSerializer, CommentSerializer, CommentCreateSerializer, CommentListSerializer
 
 
@@ -386,3 +386,33 @@ def update_delete_comment(request, comment_id):
         return Response({
             'message': 'Комментарий успешно удален'
         }, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_privacy_policy(request):
+    """
+    Получить активную политику конфиденциальности
+    GET /api/content/privacy-policy/
+    """
+    try:
+        policy = PrivacyPolicy.get_active()
+        
+        if not policy:
+            return Response({
+                'error': 'Политика конфиденциальности не найдена'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        return Response({
+            'id': str(policy.id),
+            'title': policy.title,
+            'content': policy.content,
+            'updated_at': policy.updated_at.isoformat(),
+            'created_at': policy.created_at.isoformat()
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        return Response({
+            'error': 'Ошибка при получении политики конфиденциальности',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

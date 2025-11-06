@@ -110,3 +110,28 @@ class Comment(models.Model):
     def is_reply(self):
         """Проверяет, является ли комментарий ответом"""
         return self.parent is not None
+
+
+class PrivacyPolicy(models.Model):
+    """
+    Политика конфиденциальности
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=255, default="Политика конфиденциальности", verbose_name="Заголовок")
+    content = models.TextField(verbose_name="Содержание (HTML)")
+    is_active = models.BooleanField(default=True, verbose_name="Активна")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
+    
+    class Meta:
+        verbose_name = "Политика конфиденциальности"
+        verbose_name_plural = "Политики конфиденциальности"
+        ordering = ['-updated_at']
+    
+    def __str__(self):
+        return f"{self.title} (обновлено: {self.updated_at.strftime('%d.%m.%Y %H:%M')})"
+    
+    @classmethod
+    def get_active(cls):
+        """Получить активную политику конфиденциальности"""
+        return cls.objects.filter(is_active=True).first()

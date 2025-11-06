@@ -22,6 +22,12 @@ class PostCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ['title', 'preview_text', 'content', 'preview_image_link', 'rating', 'category', 'is_published', 'accessibility']
+        extra_kwargs = {
+            'preview_image_link': {'required': False, 'allow_null': True},
+            'rating': {'required': False},
+            'is_published': {'required': False},
+            'accessibility': {'required': False},
+        }
     
     def create(self, validated_data):
         # Автоматически устанавливаем автора из контекста запроса

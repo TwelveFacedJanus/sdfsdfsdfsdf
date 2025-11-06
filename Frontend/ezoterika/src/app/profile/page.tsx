@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { getStoredTokens, getUserData, updateUserProfile, convertFileToBase64, getUserProfile, getUserHistory, getUserSettings, updateUserSettings, changePassword, getPaymentHistory, getUserSubscriptions, unsubscribeFromUser } from '@/lib/api';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -232,59 +233,7 @@ function ProfileContent() {
       setHistoryItems(response.history || []);
     } catch (error) {
       console.error('Error loading history:', error);
-      // Fallback к моковым данным при ошибке API
-      const mockHistory = [
-        {
-          id: 1,
-          description: '«Активирован абонемент»',
-          date: '2025-08-15',
-          category: 'subscription'
-        },
-        {
-          id: 2,
-          description: '«Участие в Лайве: Таро-практика»',
-          date: '2025-07-20',
-          category: 'live'
-        },
-        {
-          id: 3,
-          description: '«Пожертвование 5 € практику А»',
-          date: '2025-08-15',
-          category: 'donation'
-        },
-        {
-          id: 4,
-          description: '«Скачан файл: Годовой прогноз PDF»',
-          date: '2025-08-02',
-          category: 'download'
-        },
-        {
-          id: 5,
-          description: '«Просмотр статьи: Основы астрологии»',
-          date: '2025-07-28',
-          category: 'content'
-        },
-        {
-          id: 6,
-          description: '«Добавлено в избранное: Карты Таро»',
-          date: '2025-07-25',
-          category: 'favorites'
-        }
-      ];
-
-      // Фильтрация моковых данных
-      let filteredHistory = mockHistory;
-      if (historyFilters.category) {
-        filteredHistory = mockHistory.filter(item => item.category === historyFilters.category);
-      }
-      if (historyFilters.dateFrom) {
-        filteredHistory = filteredHistory.filter(item => item.date >= historyFilters.dateFrom);
-      }
-      if (historyFilters.dateTo) {
-        filteredHistory = filteredHistory.filter(item => item.date <= historyFilters.dateTo);
-      }
-
-      setHistoryItems(filteredHistory);
+      setHistoryItems([]);
     } finally {
       setIsLoadingHistory(false);
     }
@@ -715,12 +664,10 @@ function ProfileContent() {
                             className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-[#2A2A2A] border border-gray-600 rounded-lg text-white focus:outline-none focus:border-[#8A63D2] transition-colors appearance-none cursor-pointer text-sm sm:text-base"
                           >
                             <option value="">Все категории</option>
-                            <option value="subscription">Подписки</option>
-                            <option value="live">Лайвы</option>
-                            <option value="donation">Пожертвования</option>
-                            <option value="download">Загрузки</option>
+                            <option value="registration">Регистрация</option>
+                            <option value="favorites">Подписки</option>
                             <option value="content">Контент</option>
-                            <option value="favorites">Избранное</option>
+                            <option value="subscription">Абонемент</option>
                           </select>
                         </div>
                         <div className="flex-1 w-full min-w-0">
@@ -759,14 +706,104 @@ function ProfileContent() {
                         ) : historyItems.length > 0 ? (
                           <>
                             <div className="text-xs sm:text-sm text-gray-400 mb-2">
-                              Загружено {historyItems.length} записей из API
+                              Загружено {historyItems.length} записей
                             </div>
-                            {historyItems.map((item) => (
-                              <div key={item.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 py-3 border-b border-gray-700">
-                                <span className="text-white text-sm sm:text-base break-words flex-1 min-w-0">{item.description}</span>
-                                <span className="text-gray-400 text-xs sm:text-sm whitespace-nowrap flex-shrink-0">{formatDate(item.date)}</span>
-                              </div>
-                            ))}
+                            {historyItems.map((item: any) => {
+                              const getIcon = () => {
+                                switch (item.type) {
+                                  case 'user_registration':
+                                    return (
+                                      <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                      </svg>
+                                    );
+                                  case 'user_subscription':
+                                    return (
+                                      <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                      </svg>
+                                    );
+                                  case 'post_created':
+                                    return (
+                                      <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                      </svg>
+                                    );
+                                  case 'comment_created':
+                                    return (
+                                      <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                      </svg>
+                                    );
+                                  case 'subscription_activated':
+                                    return (
+                                      <svg className="w-5 h-5 text-[#8A63D2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                      </svg>
+                                    );
+                                  default:
+                                    return (
+                                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                      </svg>
+                                    );
+                                }
+                              };
+
+                              return (
+                                <div 
+                                  key={item.id} 
+                                  className="flex items-start gap-3 sm:gap-4 py-3 border-b border-gray-700 hover:bg-[#2A2A2A]/50 transition-colors"
+                                >
+                                  <div className="flex-shrink-0 mt-0.5">
+                                    {getIcon()}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-white text-sm sm:text-base break-words">
+                                          {item.description}
+                                        </p>
+                                        {item.related_user && (
+                                          <div className="flex items-center gap-2 mt-1">
+                                            {item.related_user.avatar && (
+                                              <img 
+                                                src={item.related_user.avatar.startsWith('data:') 
+                                                  ? item.related_user.avatar 
+                                                  : `data:image/png;base64,${item.related_user.avatar}`}
+                                                alt={item.related_user.fio}
+                                                className="w-5 h-5 rounded-full object-cover"
+                                              />
+                                            )}
+                                            <span className="text-gray-400 text-xs">
+                                              {item.related_user.fio}
+                                            </span>
+                                          </div>
+                                        )}
+                                        {item.related_post && (
+                                          <Link 
+                                            href={`/posts/${item.related_post.id}`}
+                                            className="text-[#8A63D2] hover:text-[#7A53C2] text-xs sm:text-sm mt-1 inline-block"
+                                          >
+                                            Перейти к посту →
+                                          </Link>
+                                        )}
+                                      </div>
+                                      <div className="flex flex-col items-end sm:items-end gap-1 flex-shrink-0">
+                                        <span className="text-gray-400 text-xs sm:text-sm whitespace-nowrap">
+                                          {formatDate(item.date)}
+                                        </span>
+                                        {item.time && (
+                                          <span className="text-gray-500 text-xs whitespace-nowrap">
+                                            {item.time}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </>
                         ) : (
                           <div className="text-center py-8 sm:py-12">

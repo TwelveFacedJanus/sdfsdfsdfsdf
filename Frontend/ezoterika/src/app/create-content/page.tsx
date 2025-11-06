@@ -312,17 +312,42 @@ export default function CreateContentPage() {
         console.error('Unexpected response structure:', response);
         throw new Error('Не удалось создать контент');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving content:', error);
       
       // Более информативное сообщение об ошибке
       let errorMessage = 'Ошибка при сохранении контента';
-      if (error instanceof Error) {
+      
+      if (error && typeof error === 'object') {
+        // Если есть детали ошибки валидации
+        if (error.details) {
+          if (typeof error.details === 'object') {
+            // Форматируем ошибки валидации
+            const validationErrors = Object.entries(error.details)
+              .map(([field, messages]: [string, any]) => {
+                const fieldName = field === 'title' ? 'Заголовок' :
+                                 field === 'preview_text' ? 'Превью текст' :
+                                 field === 'content' ? 'Контент' :
+                                 field === 'category' ? 'Категория' :
+                                 field === 'preview_image_link' ? 'Изображение' :
+                                 field;
+                const messageList = Array.isArray(messages) ? messages.join(', ') : String(messages);
+                return `${fieldName}: ${messageList}`;
+              })
+              .join('\n');
+            errorMessage = `Ошибка валидации:\n${validationErrors}`;
+          } else {
+            errorMessage = String(error.details);
+          }
+        } else if (error.error) {
+          errorMessage = error.error;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+      } else if (error instanceof Error) {
         errorMessage = error.message;
       } else if (typeof error === 'string') {
         errorMessage = error;
-      } else if (error && typeof error === 'object' && 'details' in error) {
-        errorMessage = String(error.details);
       }
       
       alert(errorMessage);

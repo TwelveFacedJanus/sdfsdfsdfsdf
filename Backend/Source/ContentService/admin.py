@@ -1,7 +1,9 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
-from .models import Post, Comment
+from django.db import models
+from django.forms import Textarea
+from .models import Post, Comment, PrivacyPolicy
 
 
 @admin.register(Post)
@@ -144,3 +146,61 @@ class CommentAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         """Оптимизация запросов"""
         return super().get_queryset(request).select_related('author', 'post', 'parent')
+
+
+@admin.register(PrivacyPolicy)
+class PrivacyPolicyAdmin(admin.ModelAdmin):
+    list_display = ('title', 'is_active', 'updated_at', 'created_at', 'view_policy_button')
+    list_filter = ('is_active', 'created_at', 'updated_at')
+    search_fields = ('title', 'content')
+    readonly_fields = ('id', 'created_at', 'updated_at')
+    date_hierarchy = 'updated_at'
+    actions = ['make_active', 'make_inactive']
+    
+    fieldsets = (
+        (None, {
+            'fields': ('title', 'is_active')
+        }),
+        ('Содержание', {
+            'fields': ('content',),
+            'description': 'Введите HTML-контент политики конфиденциальности. Можно использовать HTML-теги для форматирования.'
+        }),
+        ('Системная информация', {
+            'fields': ('id', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    formfield_overrides = {
+        models.TextField: {'widget': Textarea(attrs={'rows': 30, 'cols': 100, 'style': 'font-family: monospace;'})},
+    }
+    
+    def view_policy_button(self, obj):
+        """Кнопка просмотра политики на фронтенде"""
+        if obj.pk:
+            view_url = f"http://103.228.171.39:3000/privacy-policy"
+            return format_html(
+                '<a href="{}" target="_blank" class="button" style="padding: 5px 10px; background: #417690; color: white; text-decoration: none; border-radius: 3px;">👁️ Посмотреть</a>',
+                view_url
+            )
+        return '-'
+    view_policy_button.short_description = 'Просмотр'
+    
+    @admin.action(description='Активировать выбранные политики')
+    def make_active(self, request, queryset):
+        # Деактивируем все остальные политики
+        PrivacyPolicy.objects.filter(is_active=True).update(is_active=False)
+        # Активируем выбранные
+        updated = queryset.update(is_active=True)
+        self.message_user(request, f'{updated} политик(и) активировано. Остальные деактивированы.')
+    
+    @admin.action(description='Деактивировать выбранные политики')
+    def make_inactive(self, request, queryset):
+        updated = queryset.update(is_active=False)
+        self.message_user(request, f'{updated} политик(и) деактивировано.')
+    
+    def save_model(self, request, obj, form, change):
+        """При сохранении, если это новая активная политика, деактивируем остальные"""
+        if obj.is_active:
+            PrivacyPolicy.objects.filter(is_active=True).exclude(pk=obj.pk).update(is_active=False)
+        super().save_model(request, obj, form, change)

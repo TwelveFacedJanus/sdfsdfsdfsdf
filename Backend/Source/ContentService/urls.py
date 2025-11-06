@@ -30,4 +30,8 @@ urlpatterns = [
     path('comments/create', views.create_comment, name='create_comment_no_slash'),
     path('comments/<uuid:comment_id>/', views.update_delete_comment, name='update_delete_comment'),
     path('comments/<uuid:comment_id>', views.update_delete_comment, name='update_delete_comment_no_slash'),
+    
+    # Privacy Policy URLs
+    path('privacy-policy/', views.get_privacy_policy, name='get_privacy_policy'),
+    path('privacy-policy', views.get_privacy_policy, name='get_privacy_policy_no_slash'),
 ]

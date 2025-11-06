@@ -561,51 +561,91 @@ def get_user_history(request):
         date_from = request.GET.get('date_from')
         date_to = request.GET.get('date_to')
         
-        # Моковые данные для истории (в реальном проекте это будет из базы данных)
-        history_items = [
-            {
-                'id': 1,
-                'description': '«Активирован абонемент»',
-                'date': '2025-08-15',
-                'category': 'subscription',
-                'type': 'subscription_activated'
-            },
-            {
-                'id': 2,
-                'description': '«Участие в Лайве: Таро-практика»',
-                'date': '2025-07-20',
-                'category': 'live',
-                'type': 'live_participation'
-            },
-            {
-                'id': 3,
-                'description': '«Пожертвование 5 € практику А»',
-                'date': '2025-08-15',
-                'category': 'donation',
-                'type': 'donation'
-            },
-            {
-                'id': 4,
-                'description': '«Скачан файл: Годовой прогноз PDF»',
-                'date': '2025-08-02',
-                'category': 'download',
-                'type': 'file_download'
-            },
-            {
-                'id': 5,
-                'description': '«Просмотр статьи: Основы астрологии»',
-                'date': '2025-07-28',
-                'category': 'content',
-                'type': 'article_view'
-            },
-            {
-                'id': 6,
-                'description': '«Добавлено в избранное: Карты Таро»',
-                'date': '2025-07-25',
-                'category': 'favorites',
-                'type': 'favorite_added'
-            }
-        ]
+        history_items = []
+        user = request.user
+        
+        # 1. Регистрация пользователя
+        if not category or category == 'registration':
+            history_items.append({
+                'id': f'registration_{user.id}',
+                'description': f'«Зарегистрировался на платформе»',
+                'date': user.date_joined.strftime('%Y-%m-%d'),
+                'datetime': user.date_joined.isoformat(),
+                'category': 'registration',
+                'type': 'user_registration',
+                'time': user.date_joined.strftime('%H:%M')
+            })
+        
+        # 2. Подписки на других пользователей
+        if not category or category == 'subscription' or category == 'favorites':
+            from UserFavourites.models import UserFavourite
+            subscriptions = UserFavourite.objects.filter(subscriber=user).order_by('-created_at')
+            for sub in subscriptions:
+                history_items.append({
+                    'id': f'subscription_{sub.id}',
+                    'description': f'«Подписался на {sub.subscribed_to.fio}»',
+                    'date': sub.created_at.strftime('%Y-%m-%d'),
+                    'datetime': sub.created_at.isoformat(),
+                    'category': 'favorites',
+                    'type': 'user_subscription',
+                    'time': sub.created_at.strftime('%H:%M'),
+                    'related_user': {
+                        'id': str(sub.subscribed_to.id),
+                        'fio': sub.subscribed_to.fio,
+                        'avatar': sub.subscribed_to.base64_image
+                    }
+                })
+        
+        # 3. Созданные посты
+        if not category or category == 'content':
+            from ContentService.models import Post
+            posts = Post.objects.filter(author=user, is_published=True).order_by('-created_at')
+            for post in posts:
+                history_items.append({
+                    'id': f'post_{post.id}',
+                    'description': f'«Выложил пост: {post.title}»',
+                    'date': post.created_at.strftime('%Y-%m-%d'),
+                    'datetime': post.created_at.isoformat(),
+                    'category': 'content',
+                    'type': 'post_created',
+                    'time': post.created_at.strftime('%H:%M'),
+                    'related_post': {
+                        'id': str(post.id),
+                        'title': post.title
+                    }
+                })
+        
+        # 4. Оставленные комментарии
+        if not category or category == 'content':
+            from ContentService.models import Comment
+            comments = Comment.objects.filter(author=user, is_deleted=False).order_by('-created_at')
+            for comment in comments:
+                history_items.append({
+                    'id': f'comment_{comment.id}',
+                    'description': f'«Оставил комментарий к посту: {comment.post.title}»',
+                    'date': comment.created_at.strftime('%Y-%m-%d'),
+                    'datetime': comment.created_at.isoformat(),
+                    'category': 'content',
+                    'type': 'comment_created',
+                    'time': comment.created_at.strftime('%H:%M'),
+                    'related_post': {
+                        'id': str(comment.post.id),
+                        'title': comment.post.title
+                    }
+                })
+        
+        # 5. Активация подписки (если есть)
+        if not category or category == 'subscription':
+            if user.is_subscribed and user.subscribe_expired:
+                history_items.append({
+                    'id': f'subscription_activated_{user.id}',
+                    'description': f'«Активирован абонемент до {user.subscribe_expired.strftime("%d.%m.%Y")}»',
+                    'date': user.subscribe_expired.strftime('%Y-%m-%d'),
+                    'datetime': user.subscribe_expired.isoformat(),
+                    'category': 'subscription',
+                    'type': 'subscription_activated',
+                    'time': user.subscribe_expired.strftime('%H:%M')
+                })
         
         # Фильтрация по категории
         if category:
@@ -618,8 +658,8 @@ def get_user_history(request):
         if date_to:
             history_items = [item for item in history_items if item['date'] <= date_to]
         
-        # Сортировка по дате (новые сначала)
-        history_items.sort(key=lambda x: x['date'], reverse=True)
+        # Сортировка по дате и времени (новые сначала)
+        history_items.sort(key=lambda x: x.get('datetime', x['date']), reverse=True)
         
         return Response({
             'history': history_items,
@@ -627,6 +667,8 @@ def get_user_history(request):
         }, status=status.HTTP_200_OK)
         
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return Response({
             'error': 'Ошибка при получении истории',
             'details': str(e)

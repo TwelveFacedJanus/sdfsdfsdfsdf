@@ -39,6 +39,7 @@ export const API_ENDPOINTS = {
     UPLOAD_IMAGE: `${API_BASE_URL}/api/content/upload-image/`,
     TOP_POSTS: `${API_BASE_URL}/api/content/top-posts/`,
     COMMENTS: `${API_BASE_URL}/api/content/comments/`,
+    PRIVACY_POLICY: `${API_BASE_URL}/api/content/privacy-policy/`,
   },
   SUBSCRIPTIONS: {
     SUBSCRIBE: `${API_BASE_URL}/api/user-favourites/subscribe/`,
@@ -535,5 +536,12 @@ export const markNotificationRead = async (notificationId: string): Promise<any>
 export const markAllNotificationsRead = async (): Promise<any> => {
   return apiRequest(API_ENDPOINTS.USER.MARK_ALL_NOTIFICATIONS_READ, {
     method: 'POST',
+  });
+};
+
+// Privacy Policy API Functions
+export const getPrivacyPolicy = async (): Promise<any> => {
+  return apiRequest(API_ENDPOINTS.CONTENT.PRIVACY_POLICY, {
+    method: 'GET',
   });
 };
