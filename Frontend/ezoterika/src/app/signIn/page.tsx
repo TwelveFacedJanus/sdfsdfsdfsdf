@@ -222,7 +222,22 @@ export default function SignInPage() {
         js.defer = true;
         js.onerror = () => {
           console.error('Failed to load Facebook SDK');
-          setError('Не удалось загрузить Facebook SDK. Проверьте подключение к интернету.');
+          // Не показываем ошибку сразу, возможно SDK загрузится позже
+          // Устанавливаем таймаут для проверки
+          setTimeout(() => {
+            if (!window.FB) {
+              setError('Не удалось загрузить Facebook SDK. Проверьте подключение к интернету или настройки браузера (блокировщики рекламы могут блокировать Facebook SDK).');
+            }
+          }, 3000);
+        };
+        js.onload = () => {
+          console.log('Facebook SDK script loaded');
+          // Если fbAsyncInit не вызвался автоматически, вызываем вручную
+          setTimeout(() => {
+            if (window.fbAsyncInit && typeof window.fbAsyncInit === 'function') {
+              window.fbAsyncInit();
+            }
+          }, 100);
         };
         if (fjs && fjs.parentNode) {
           fjs.parentNode.insertBefore(js, fjs);
@@ -230,6 +245,13 @@ export default function SignInPage() {
           document.body.appendChild(js);
         }
       }(document, 'script', 'facebook-jssdk'));
+      
+      // Дополнительная проверка через таймаут
+      setTimeout(() => {
+        if (!window.FB) {
+          console.warn('Facebook SDK not loaded after 5 seconds');
+        }
+      }, 5000);
     };
 
     const initFacebookSDK = () => {
@@ -244,7 +266,7 @@ export default function SignInPage() {
           return;
         }
         window.FB.init({
-          appId: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '',
+          appId: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '817819464543055',
           cookie: true,
           xfbml: true,
           version: 'v18.0'
