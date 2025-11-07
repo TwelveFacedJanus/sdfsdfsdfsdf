@@ -1,6 +1,11 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import dynamic from 'next/dynamic';
+import 'react-quill-new/dist/quill.snow.css';
+
+// Динамический импорт ReactQuill для избежания SSR проблем
+const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
 
 interface RichTextEditorProps {
   value: string;
@@ -11,6 +16,212 @@ interface RichTextEditorProps {
   label?: string;
 }
 
+// Функция для извлечения текста из HTML элемента (без рекурсии)
+const extractTextFromHtml = (html: string): string => {
+  if (!html) return '';
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  return div.textContent || div.innerText || '';
+};
+
+// Функция для конвертации HTML в Markdown
+const htmlToMarkdown = (html: string): string => {
+  if (!html) return '';
+  
+  let markdown = html;
+  let depth = 0;
+  const maxDepth = 10; // Защита от бесконечной рекурсии
+  
+  const processHtml = (content: string, currentDepth: number): string => {
+    if (currentDepth > maxDepth) {
+      return extractTextFromHtml(content);
+    }
+    
+    let result = content;
+    
+    // Обрабатываем списки
+    result = result.replace(/<ul[^>]*>(.*?)<\/ul>/gis, (match, listContent) => {
+      const items = listContent.match(/<li[^>]*>(.*?)<\/li>/gis) || [];
+      return items.map((item: string) => {
+        const itemContent = item.replace(/<li[^>]*>(.*?)<\/li>/gis, '$1');
+        const processed = processHtml(itemContent, currentDepth + 1);
+        return `- ${processed.trim()}`;
+      }).join('\n') + '\n\n';
+    });
+    
+    // Заголовки
+    result = result.replace(/<h1[^>]*>(.*?)<\/h1>/gi, (match, content) => {
+      return '# ' + processHtml(content, currentDepth + 1).trim() + '\n\n';
+    });
+    result = result.replace(/<h2[^>]*>(.*?)<\/h2>/gi, (match, content) => {
+      return '## ' + processHtml(content, currentDepth + 1).trim() + '\n\n';
+    });
+    result = result.replace(/<h3[^>]*>(.*?)<\/h3>/gi, (match, content) => {
+      return '### ' + processHtml(content, currentDepth + 1).trim() + '\n\n';
+    });
+    
+    // Ссылки
+    result = result.replace(/<a[^>]*href=["']([^"']+)["'][^>]*>(.*?)<\/a>/gi, (match, url, text) => {
+      const linkText = processHtml(text, currentDepth + 1);
+      return `[${linkText}](${url})`;
+    });
+    
+    // Жирный текст
+    result = result.replace(/<strong[^>]*>(.*?)<\/strong>/gi, (match, content) => {
+      return '**' + processHtml(content, currentDepth + 1) + '**';
+    });
+    result = result.replace(/<b[^>]*>(.*?)<\/b>/gi, (match, content) => {
+      return '**' + processHtml(content, currentDepth + 1) + '**';
+    });
+    
+    // Курсив
+    result = result.replace(/<em[^>]*>(.*?)<\/em>/gi, (match, content) => {
+      return '*' + processHtml(content, currentDepth + 1) + '*';
+    });
+    result = result.replace(/<i[^>]*>(.*?)<\/i>/gi, (match, content) => {
+      return '*' + processHtml(content, currentDepth + 1) + '*';
+    });
+    
+    // Подчеркивание
+    result = result.replace(/<u[^>]*>(.*?)<\/u>/gi, (match, content) => {
+      return '<u>' + processHtml(content, currentDepth + 1) + '</u>';
+    });
+    
+    // Параграфы
+    result = result.replace(/<p[^>]*>(.*?)<\/p>/gi, (match, content) => {
+      const text = processHtml(content, currentDepth + 1);
+      return text ? text + '\n\n' : '\n\n';
+    });
+    
+    // Div элементы
+    result = result.replace(/<div[^>]*>(.*?)<\/div>/gi, (match, content) => {
+      const text = processHtml(content, currentDepth + 1);
+      return text ? text + '\n\n' : '\n\n';
+    });
+    
+    // Переносы строк
+    result = result.replace(/<br\s*\/?>/gi, '\n');
+    
+    // Удаляем пустые параграфы
+    result = result.replace(/<p><br\s*\/?><\/p>/gi, '\n\n');
+    result = result.replace(/<p>\s*<\/p>/gi, '\n\n');
+    result = result.replace(/<div><br\s*\/?><\/div>/gi, '\n\n');
+    result = result.replace(/<div>\s*<\/div>/gi, '\n\n');
+    
+    // Удаляем оставшиеся HTML теги
+    result = result.replace(/<[^>]+>/g, '');
+    
+    return result;
+  };
+  
+  markdown = processHtml(markdown, depth);
+  
+  // Декодируем HTML entities
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = markdown;
+  markdown = textarea.value;
+  
+  // Очищаем лишние переносы строк
+  markdown = markdown.replace(/\n{3,}/g, '\n\n');
+  markdown = markdown.trim();
+  
+  return markdown;
+};
+
+// Функция для конвертации Markdown в HTML (для начального значения)
+const markdownToHtml = (markdown: string): string => {
+  if (!markdown) return '';
+  
+  let html = markdown;
+  
+  // Экранируем HTML
+    html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    
+    // Восстанавливаем наши теги подчеркивания
+  html = html.replace(/&lt;u&gt;(.*?)&lt;\/u&gt;/g, '<u>$1</u>');
+  
+  // Заголовки
+  html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+  html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+  html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+    
+    // Ссылки
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+    
+  // Жирный текст
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    
+  // Курсив
+  html = html.replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, '<em>$1</em>');
+    
+  // Списки
+    const lines = html.split('\n');
+    const processedLines: string[] = [];
+    let inList = false;
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const trimmedLine = line.trim();
+      
+      if (trimmedLine.match(/^<h[1-3]|^<img/)) {
+        if (inList) {
+          processedLines.push('</ul>');
+          inList = false;
+        }
+        processedLines.push(line);
+        continue;
+      }
+      
+      if (trimmedLine.startsWith('- ')) {
+        if (!inList) {
+        processedLines.push('<ul>');
+          inList = true;
+        }
+        const listItem = trimmedLine.substring(2);
+      processedLines.push(`<li>${listItem}</li>`);
+        continue;
+      }
+      
+      if (inList) {
+        processedLines.push('</ul>');
+        inList = false;
+      }
+      
+      if (trimmedLine === '') {
+        continue;
+      }
+      
+      if (trimmedLine && !trimmedLine.match(/^<[h|u|l|i]/)) {
+      processedLines.push(`<p>${line}</p>`);
+      } else {
+        processedLines.push(line);
+      }
+    }
+    
+    if (inList) {
+      processedLines.push('</ul>');
+    }
+    
+    html = processedLines.join('\n');
+    html = html.replace(/(<p[^>]*>)(.*?)(<\/p>)/gs, (match, open, content, close) => {
+      return open + content.replace(/\n/g, '<br />') + close;
+    });
+    
+  return html || '';
+};
+
+// Популярные эмодзи, сгруппированные по категориям
+const emojiCategories = {
+  'Смайлики': ['😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😙', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔'],
+  'Эмоции': ['😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤐', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫'],
+  'Жесты': ['👋', '🤚', '🖐', '✋', '🖖', '👌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏'],
+  'Сердечки': ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐'],
+  'Символы': ['⭐', '🌟', '✨', '💫', '💥', '💢', '💯', '💦', '💨', '🕳️', '💣', '💬', '👁️‍🗨️', '🗨️', '🗯️', '💭', '💤', '👋', '🤚', '🖐', '✋', '🖖', '👌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈'],
+  'Животные': ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐽', '🐸', '🐵', '🙈', '🙉', '🙊', '🐒', '🐔', '🐧', '🐦', '🐤', '🐣', '🐥', '🦆', '🦅', '🦉', '🦇'],
+  'Еда': ['🍏', '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦', '🥬', '🥒', '🌶️', '🌽', '🥕', '🥔', '🍠', '🥐', '🥯', '🍞'],
+  'Активности': ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🥅', '⛳', '🏹', '🎣', '🥊', '🥋', '🎽', '🛹', '🛷', '⛸️', '🥌', '🎿', '⛷️', '🏂'],
+};
+
 export default function RichTextEditor({ 
   value, 
   onChange, 
@@ -19,26 +230,59 @@ export default function RichTextEditor({
   defaultHeading = 'H1',
   label = 'Заголовок'
 }: RichTextEditorProps) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const headingButtonRef = useRef<HTMLButtonElement>(null);
-  const emojiButtonRef = useRef<HTMLButtonElement>(null);
-  const [currentHeading, setCurrentHeading] = useState(defaultHeading);
-  const [isHeadingMenuOpen, setIsHeadingMenuOpen] = useState(false);
+  const [quillValue, setQuillValue] = useState('');
+  const [isMounted, setIsMounted] = useState(false);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
-  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const [emojiPosition, setEmojiPosition] = useState({ top: 0, left: 0 });
+  const emojiButtonRef = useRef<HTMLButtonElement>(null);
+  const quillRef = useRef<any>(null);
 
+  // Инициализация при монтировании
   useEffect(() => {
-    if (isHeadingMenuOpen && headingButtonRef.current) {
-      const rect = headingButtonRef.current.getBoundingClientRect();
-      setMenuPosition({
-        top: rect.bottom + window.scrollY + 4,
-        left: rect.left + window.scrollX
-      });
-    }
-  }, [isHeadingMenuOpen]);
+    setIsMounted(true);
+    // Конвертируем markdown в HTML для Quill
+    const html = markdownToHtml(value);
+    setQuillValue(html);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  // Обновление при изменении value извне
+  useEffect(() => {
+    if (isMounted) {
+      const html = markdownToHtml(value);
+      // Проверяем, чтобы не обновлять, если значение уже такое же
+      const currentMarkdown = htmlToMarkdown(quillValue);
+      if (currentMarkdown !== value) {
+        setQuillValue(html);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, isMounted]);
+
+  // Обработчик изменения в Quill
+  const handleChange = (content: string) => {
+    setQuillValue(content);
+    // Конвертируем HTML обратно в Markdown
+    const markdown = htmlToMarkdown(content);
+    onChange(markdown);
+  };
+
+  // Обработчик вставки эмодзи
+  const handleEmojiClick = (emoji: string) => {
+    if (quillRef.current) {
+      const quill = quillRef.current.getEditor();
+      const range = quill.getSelection(true);
+      if (range) {
+        quill.insertText(range.index, emoji, 'user');
+        quill.setSelection(range.index + emoji.length);
+      } else {
+        quill.insertText(quill.getLength(), emoji, 'user');
+      }
+      setIsEmojiPickerOpen(false);
+    }
+  };
+
+  // Обработчик позиционирования эмодзи-пикера
   useEffect(() => {
     if (isEmojiPickerOpen && emojiButtonRef.current) {
       const rect = emojiButtonRef.current.getBoundingClientRect();
@@ -49,448 +293,76 @@ export default function RichTextEditor({
     }
   }, [isEmojiPickerOpen]);
 
-  const insertMarkdown = (before: string, after: string = '', replaceSelection?: boolean) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
+  // Настройка модулей Quill
+  const modules = useMemo(() => ({
+    toolbar: {
+      container: [
+        [{ 'header': [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline'],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        ['link'],
+        ['clean']
+      ],
+    },
+  }), []);
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = value.substring(start, end);
-    const textBefore = value.substring(0, start);
-    const textAfter = value.substring(end);
+  const formats = [
+    'header',
+    'bold', 'italic', 'underline',
+    'list', 'bullet',
+    'link'
+  ];
 
-    let newValue = '';
-    let newCursorPos = start + before.length;
-
-    if (replaceSelection && selectedText) {
-      // Заменяем выделенный текст
-      newValue = textBefore + before + selectedText + after + textAfter;
-      newCursorPos = start + before.length + selectedText.length + after.length;
-    } else if (selectedText) {
-      // Оборачиваем выделенный текст
-      newValue = textBefore + before + selectedText + after + textAfter;
-      newCursorPos = start + before.length + selectedText.length + after.length;
-    } else {
-      // Вставляем маркеры без текста
-      newValue = textBefore + before + after + textAfter;
-      newCursorPos = start + before.length;
-    }
-
-    onChange(newValue);
-    
-    // Восстанавливаем позицию курсора после обновления
-    setTimeout(() => {
-      if (textarea) {
-        textarea.focus();
-        textarea.setSelectionRange(newCursorPos, newCursorPos);
-      }
-    }, 0);
-  };
-
-  const handleBold = () => {
-    insertMarkdown('**', '**', true);
-  };
-
-  const handleItalic = () => {
-    insertMarkdown('*', '*', true);
-  };
-
-  const handleUnderline = () => {
-    insertMarkdown('<u>', '</u>', true);
-  };
-
-  const handleLink = () => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = value.substring(start, end);
-    
-    if (selectedText) {
-      insertMarkdown('[', '](url)', false);
-    } else {
-      insertMarkdown('[текст](url)', '', false);
-    }
-  };
-
-  const handleList = () => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = value.substring(start, end);
-    const textBefore = value.substring(0, start);
-    const textAfter = value.substring(end);
-
-    let newValue = '';
-    let newCursorPos = start;
-
-    if (selectedText) {
-      // Преобразуем выделенные строки в список
-      const lines = selectedText.split('\n').filter(line => line.trim());
-      const listItems = lines.map(line => `- ${line.trim()}`).join('\n');
-      newValue = textBefore + listItems + textAfter;
-      newCursorPos = start + listItems.length;
-    } else {
-      // Вставляем пустой элемент списка
-      newValue = textBefore + '- ' + textAfter;
-      newCursorPos = start + 2;
-    }
-
-    onChange(newValue);
-    
-    setTimeout(() => {
-      if (textarea) {
-        textarea.focus();
-        textarea.setSelectionRange(newCursorPos, newCursorPos);
-      }
-    }, 0);
-  };
-
-  const handleHeadingChange = (heading: 'H1' | 'H2' | 'H3' | 'P' | 'P1') => {
-    setCurrentHeading(heading);
-    setIsHeadingMenuOpen(false);
-    
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = value.substring(start, end);
-    const textBefore = value.substring(0, start);
-    const textAfter = value.substring(end);
-
-    // Определяем маркер для каждого типа заголовка
-    let markdownPrefix = '';
-    let markdownSuffix = '';
-    
-    if (heading === 'H1') {
-      markdownPrefix = '# ';
-    } else if (heading === 'H2') {
-      markdownPrefix = '## ';
-    } else if (heading === 'H3') {
-      markdownPrefix = '### ';
-    } else if (heading === 'P' || heading === 'P1') {
-      // Для обычного текста ничего не добавляем
-      return;
-    }
-
-    let newValue = '';
-    let newCursorPos = start;
-
-    if (selectedText) {
-      // Если есть выделенный текст, применяем форматирование к нему
-      newValue = textBefore + markdownPrefix + selectedText + markdownSuffix + textAfter;
-      newCursorPos = start + markdownPrefix.length + selectedText.length + markdownSuffix.length;
-    } else {
-      // Если текста нет, вставляем маркер в текущую позицию
-      newValue = textBefore + markdownPrefix + markdownSuffix + textAfter;
-      newCursorPos = start + markdownPrefix.length;
-    }
-
-    onChange(newValue);
-    
-    setTimeout(() => {
-      if (textarea) {
-        textarea.focus();
-        textarea.setSelectionRange(newCursorPos, newCursorPos);
-      }
-    }, 0);
-  };
-
-  const handleEmojiClick = (emoji: string) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const textBefore = value.substring(0, start);
-    const textAfter = value.substring(end);
-
-    const newValue = textBefore + emoji + textAfter;
-    const newCursorPos = start + emoji.length;
-
-    onChange(newValue);
-    setIsEmojiPickerOpen(false);
-    
-    setTimeout(() => {
-      if (textarea) {
-        textarea.focus();
-        textarea.setSelectionRange(newCursorPos, newCursorPos);
-      }
-    }, 0);
-  };
-
-  // Популярные эмодзи, сгруппированные по категориям
-  const emojiCategories = {
-    'Смайлики': ['😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😙', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔'],
-    'Эмоции': ['😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤐', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫'],
-    'Жесты': ['👋', '🤚', '🖐', '✋', '🖖', '👌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏'],
-    'Сердечки': ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐'],
-    'Символы': ['⭐', '🌟', '✨', '💫', '💥', '💢', '💯', '💦', '💨', '🕳️', '💣', '💬', '👁️‍🗨️', '🗨️', '🗯️', '💭', '💤', '👋', '🤚', '🖐', '✋', '🖖', '👌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈'],
-    'Животные': ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐽', '🐸', '🐵', '🙈', '🙉', '🙊', '🐒', '🐔', '🐧', '🐦', '🐤', '🐣', '🐥', '🦆', '🦅', '🦉', '🦇'],
-    'Еда': ['🍏', '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦', '🥬', '🥒', '🌶️', '🌽', '🥕', '🥔', '🍠', '🥐', '🥯', '🍞'],
-    'Активности': ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🥅', '⛳', '🏹', '🎣', '🥊', '🥋', '🎽', '🛹', '🛷', '⛸️', '🥌', '🎿', '⛷️', '🏂'],
-  };
-
-  // Функция для рендеринга markdown в HTML
-  const renderMarkdown = (text: string): string => {
-    if (!text) return '<p class="text-white/50 italic">Начните вводить текст...</p>';
-    
-    let html = text;
-    
-    // Экранируем HTML теги (кроме тех, что мы сами добавляем)
-    html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    
-    // Восстанавливаем наши теги подчеркивания
-    html = html.replace(/&lt;u&gt;(.*?)&lt;\/u&gt;/g, '<u class="underline">$1</u>');
-    
-    // Заголовки (обрабатываем до других элементов)
-    html = html.replace(/^### (.*$)/gim, '<h3 class="text-xl font-bold text-white mt-4 mb-2">$1</h3>');
-    html = html.replace(/^## (.*$)/gim, '<h2 class="text-2xl font-bold text-white mt-4 mb-2">$1</h2>');
-    html = html.replace(/^# (.*$)/gim, '<h1 class="text-3xl font-bold text-white mt-4 mb-2">$1</h1>');
-    
-    // Изображения
-    html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="max-w-full rounded-lg my-4" />');
-    
-    // Ссылки
-    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-400 hover:text-blue-300 underline" target="_blank" rel="noopener noreferrer">$1</a>');
-    
-    // Жирный текст (должен быть после ссылок)
-    html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-white">$1</strong>');
-    
-    // Курсив (после жирного, чтобы не конфликтовать) - используем простой паттерн
-    // Ищем одиночные звездочки, которые не являются частью двойных
-    html = html.replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, '<em class="italic">$1</em>');
-    
-    // Разбиваем на строки для обработки списков и параграфов
-    const lines = html.split('\n');
-    const processedLines: string[] = [];
-    let inList = false;
-    
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const trimmedLine = line.trim();
-      
-      // Проверяем, является ли строка заголовком или изображением
-      if (trimmedLine.match(/^<h[1-3]|^<img/)) {
-        if (inList) {
-          processedLines.push('</ul>');
-          inList = false;
-        }
-        processedLines.push(line);
-        continue;
-      }
-      
-      // Проверяем, является ли строка элементом списка
-      if (trimmedLine.startsWith('- ')) {
-        if (!inList) {
-          processedLines.push('<ul class="list-disc ml-6 mb-4 space-y-1">');
-          inList = true;
-        }
-        const listItem = trimmedLine.substring(2);
-        processedLines.push(`<li class="text-white/90">${listItem}</li>`);
-        continue;
-      }
-      
-      // Если это не список, закрываем список если он был открыт
-      if (inList) {
-        processedLines.push('</ul>');
-        inList = false;
-      }
-      
-      // Пустая строка - параграф
-      if (trimmedLine === '') {
-        if (i > 0 && processedLines[processedLines.length - 1] && !processedLines[processedLines.length - 1].match(/^<\/|^<h|^<img/)) {
-          // Пропускаем пустые строки между элементами
-        }
-        continue;
-      }
-      
-      // Обычный текст - оборачиваем в параграф
-      if (trimmedLine && !trimmedLine.match(/^<[h|u|l|i]/)) {
-        processedLines.push(`<p class="mb-3 text-white/90 leading-relaxed">${line}</p>`);
-      } else {
-        processedLines.push(line);
-      }
-    }
-    
-    // Закрываем список если он остался открытым
-    if (inList) {
-      processedLines.push('</ul>');
-    }
-    
-    html = processedLines.join('\n');
-    
-    // Переносы строк внутри параграфов
-    html = html.replace(/(<p[^>]*>)(.*?)(<\/p>)/gs, (match, open, content, close) => {
-      return open + content.replace(/\n/g, '<br />') + close;
-    });
-    
-    return html || '<p class="text-white/50 italic">Начните вводить текст...</p>';
-  };
-
-  const Toolbar = () => (
-    <div 
-      className="flex items-center gap-1 sm:gap-2 p-2 sm:p-3 border-b overflow-x-auto scrollbar-hide relative"
-      style={{
-        backgroundColor: '#1A1A1A',
-        borderColor: 'rgba(255, 255, 255, 0.1)',
-        scrollbarWidth: 'none',
-        msOverflowStyle: 'none',
-        overflowY: 'visible'
-      }}
-    >
-      {/* Heading selector - dropdown style */}
-      <div className="relative flex-shrink-0" style={{ zIndex: isHeadingMenuOpen ? 10000 : 'auto' }}>
-        <button
-          ref={headingButtonRef}
-          type="button"
-          onClick={() => setIsHeadingMenuOpen(!isHeadingMenuOpen)}
-          className="flex items-center gap-1 text-white/70 text-xs sm:text-sm font-medium px-2 sm:px-2.5 py-1.5 sm:py-1 cursor-pointer hover:text-white active:text-white hover:bg-white/5 active:bg-white/10 rounded transition-colors touch-manipulation min-h-[36px] sm:min-h-[32px]"
-        >
-          <span>{currentHeading}</span>
-          <div className="flex flex-col -space-y-1">
-            <svg className="w-2 sm:w-2.5 h-2 sm:h-2.5" fill="none" stroke="currentColor" viewBox="0 0 12 12">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 6L6 3L9 6" />
-            </svg>
-            <svg className="w-2 sm:w-2.5 h-2 sm:h-2.5" fill="none" stroke="currentColor" viewBox="0 0 12 12">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 6L6 9L9 6" />
-            </svg>
+  if (!isMounted) {
+    return (
+      <div className="w-full relative">
+        <div className="mb-2">
+          <span className="text-xs sm:text-sm text-white/70">{label}</span>
           </div>
-        </button>
-        
-        {isHeadingMenuOpen && (
-          <>
             <div 
-              className="fixed inset-0" 
-              onClick={() => setIsHeadingMenuOpen(false)}
+          className="rounded-lg border"
               style={{ 
-                backgroundColor: 'transparent',
-                zIndex: 9998
-              }}
-            />
-            <div 
-              className="fixed rounded-lg border overflow-hidden shadow-lg"
-              style={{
-                backgroundColor: '#1A1A1A',
+            backgroundColor: '#090F1B',
                 borderColor: 'rgba(255, 255, 255, 0.1)',
-                minWidth: '80px',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
-                top: `${menuPosition.top}px`,
-                left: `${menuPosition.left}px`,
-                zIndex: 9999
-              }}
-            >
-              {(['H1', 'H2', 'H3', 'P', 'P1'] as const).map((heading) => (
-                <button
-                  key={heading}
-                  type="button"
-                  onClick={() => handleHeadingChange(heading)}
-                  className={`w-full text-left px-3 py-2 text-xs sm:text-sm hover:bg-white/10 active:bg-white/20 transition-colors touch-manipulation ${
-                    currentHeading === heading ? 'text-white bg-white/5' : 'text-white/70'
-                  }`}
-                >
-                  {heading}
-                </button>
-              ))}
+            minHeight: `${rows * 20}px`,
+          }}
+        >
+          <div className="p-4 text-white/50">Загрузка редактора...</div>
+      </div>
             </div>
-          </>
-        )}
+  );
+  }
+
+  return (
+    <div className="w-full relative">
+      {/* Label */}
+      <div className="mb-2">
+        <span className="text-xs sm:text-sm text-white/70">{label}</span>
       </div>
 
-      <div className="h-4 sm:h-5 w-px mx-0.5 sm:mx-1 flex-shrink-0" style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
-
-      {/* Bold */}
-      <button
-        type="button"
-        onClick={handleBold}
-        className="px-2 sm:px-2.5 py-1.5 sm:py-1 text-white/70 text-xs sm:text-sm font-bold hover:text-white active:text-white hover:bg-white/5 active:bg-white/10 rounded transition-colors touch-manipulation min-w-[32px] sm:min-w-[28px] min-h-[36px] sm:min-h-[32px] flex items-center justify-center"
-        title="Жирный"
-      >
-        B
-      </button>
-
-      {/* Italic */}
-      <button
-        type="button"
-        onClick={handleItalic}
-        className="px-2 sm:px-2.5 py-1.5 sm:py-1 text-white/70 text-xs sm:text-sm italic hover:text-white active:text-white hover:bg-white/5 active:bg-white/10 rounded transition-colors touch-manipulation min-w-[32px] sm:min-w-[28px] min-h-[36px] sm:min-h-[32px] flex items-center justify-center"
-        title="Курсив"
-      >
-        I
-      </button>
-
-      {/* Underline */}
-      <button
-        type="button"
-        onClick={handleUnderline}
-        className="px-2 sm:px-2.5 py-1.5 sm:py-1 text-white/70 text-xs sm:text-sm underline hover:text-white active:text-white hover:bg-white/5 active:bg-white/10 rounded transition-colors touch-manipulation min-w-[32px] sm:min-w-[28px] min-h-[36px] sm:min-h-[32px] flex items-center justify-center"
-        title="Подчеркнутый"
-      >
-        U
-      </button>
-
-      <div className="h-4 sm:h-5 w-px mx-0.5 sm:mx-1 flex-shrink-0" style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
-
-      {/* Link */}
-      <button
-        type="button"
-        onClick={handleLink}
-        className="p-1.5 sm:p-1 text-white/70 hover:text-white active:text-white hover:bg-white/5 active:bg-white/10 rounded transition-colors touch-manipulation min-w-[36px] sm:min-w-[32px] min-h-[36px] sm:min-h-[32px] flex items-center justify-center"
-        title="Ссылка"
-      >
-        <svg className="w-4 h-4 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-        </svg>
-      </button>
-
-      <div className="h-4 sm:h-5 w-px mx-0.5 sm:mx-1 flex-shrink-0" style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
-
-      {/* Bullet list */}
-      <button
-        type="button"
-        onClick={handleList}
-        className="p-1.5 sm:p-1 text-white/70 hover:text-white active:text-white hover:bg-white/5 active:bg-white/10 rounded transition-colors touch-manipulation min-w-[36px] sm:min-w-[32px] min-h-[36px] sm:min-h-[32px] flex items-center justify-center"
-        title="Маркированный список"
-      >
-        <svg className="w-4 h-4 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <circle cx="4" cy="6" r="1" fill="currentColor" />
-          <circle cx="4" cy="12" r="1" fill="currentColor" />
-          <circle cx="4" cy="18" r="1" fill="currentColor" />
-          <line x1="8" y1="6" x2="20" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          <line x1="8" y1="12" x2="20" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          <line x1="8" y1="18" x2="20" y2="18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-      </button>
-
-      <div className="h-4 sm:h-5 w-px mx-0.5 sm:mx-1 flex-shrink-0" style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
-
-      {/* Preview Toggle */}
-      <button
-        type="button"
-        onClick={() => setShowPreview(!showPreview)}
-        className="p-1.5 sm:p-1 text-white/70 hover:text-white active:text-white hover:bg-white/5 active:bg-white/10 rounded transition-colors touch-manipulation min-w-[36px] sm:min-w-[32px] min-h-[36px] sm:min-h-[32px] flex items-center justify-center"
-        title={showPreview ? "Редактирование" : "Предпросмотр"}
-      >
-        <svg className="w-4 h-4 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          {showPreview ? (
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          ) : (
-            <>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </>
-          )}
-        </svg>
-      </button>
-
-      <div className="h-4 sm:h-5 w-px mx-0.5 sm:mx-1 flex-shrink-0" style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
-
-      {/* Emoji Picker */}
-      <div className="relative flex-shrink-0" style={{ zIndex: isEmojiPickerOpen ? 10000 : 'auto' }}>
+      {/* Quill Editor */}
+      <div className="quill-editor-wrapper relative">
+        <ReactQuill
+          ref={quillRef}
+          theme="snow"
+          value={quillValue}
+          onChange={handleChange}
+          modules={modules}
+          formats={formats}
+          placeholder={placeholder}
+          style={{
+            backgroundColor: '#090F1B',
+          }}
+        />
+        {/* Кастомная кнопка эмодзи - позиционируем внутри тулбара */}
+        <div 
+          className="absolute"
+          style={{ 
+            top: '0.5rem',
+            right: '0.5rem',
+            zIndex: 1000
+          }}
+        >
         <button
           ref={emojiButtonRef}
           type="button"
@@ -500,7 +372,9 @@ export default function RichTextEditor({
         >
           <span className="text-base sm:text-lg">😀</span>
         </button>
+        </div>
         
+        {/* Выпадающее меню эмодзи */}
         {isEmojiPickerOpen && (
           <>
             <div 
@@ -553,51 +427,4 @@ export default function RichTextEditor({
       </div>
     </div>
   );
-
-  return (
-    <div className="w-full relative">
-      {/* Label */}
-      <div className="mb-2">
-        <span className="text-xs sm:text-sm text-white/70">{label}</span>
-      </div>
-      
-      {/* Editor container */}
-      <div 
-        className="rounded-lg border relative"
-        style={{
-          backgroundColor: '#090F1B',
-          borderColor: 'rgba(255, 255, 255, 0.1)'
-        }}
-      >
-        <div className="rounded-t-lg relative" style={{ overflowY: 'visible' }}>
-          <Toolbar />
-        </div>
-        {showPreview ? (
-          <div
-            className="w-full px-3 sm:px-4 py-3 sm:py-4 text-white overflow-y-auto rounded-b-lg"
-            style={{
-              backgroundColor: '#090F1B',
-              minHeight: '150px',
-              maxHeight: '500px'
-            }}
-            dangerouslySetInnerHTML={{ __html: renderMarkdown(value) }}
-          />
-        ) : (
-          <textarea
-            ref={textareaRef}
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={placeholder}
-            rows={rows}
-            className="w-full px-3 sm:px-4 py-3 sm:py-4 text-white placeholder-white/40 focus:outline-none transition-colors resize-none text-sm sm:text-base rounded-b-lg"
-            style={{
-              backgroundColor: '#090F1B',
-              minHeight: '150px'
-            }}
-          />
-        )}
-      </div>
-    </div>
-  );
 }
-

@@ -57,6 +57,268 @@ body {
   display: none;
 }
 
+/* WYSIWYG Editor Styles */
+.editor-content:empty:before {
+  content: attr(data-placeholder);
+  color: rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+}
+
+.editor-content h1 {
+  font-size: 1.875rem;
+  font-weight: bold;
+  margin: 1rem 0 0.5rem 0;
+  color: white;
+}
+
+.editor-content h2 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 1rem 0 0.5rem 0;
+  color: white;
+}
+
+.editor-content h3 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin: 1rem 0 0.5rem 0;
+  color: white;
+}
+
+.editor-content p {
+  margin: 0.5rem 0;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+}
+
+.editor-content ul {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+  list-style-type: disc;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.editor-content li {
+  margin: 0.25rem 0;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.editor-content a {
+  color: #60a5fa;
+  text-decoration: underline;
+}
+
+.editor-content a:hover {
+  color: #93c5fd;
+}
+
+.editor-content strong {
+  font-weight: bold;
+  color: white;
+}
+
+.editor-content em {
+  font-style: italic;
+}
+
+.editor-content u {
+  text-decoration: underline;
+}
+
+/* Quill Editor Styles - Dark Theme */
+.quill-editor-wrapper {
+  background-color: #090F1B !important;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.quill-editor-wrapper .ql-toolbar.ql-snow {
+  background-color: #1A1A1A !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  padding: 0.5rem 0.75rem;
+}
+
+.quill-editor-wrapper .ql-toolbar .ql-stroke {
+  stroke: rgba(255, 255, 255, 0.7);
+}
+
+.quill-editor-wrapper .ql-toolbar .ql-fill {
+  fill: rgba(255, 255, 255, 0.7);
+}
+
+.quill-editor-wrapper .ql-toolbar .ql-picker-label {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.quill-editor-wrapper .ql-toolbar .ql-picker-label:hover {
+  color: white;
+}
+
+.quill-editor-wrapper .ql-toolbar button:hover,
+.quill-editor-wrapper .ql-toolbar button:focus,
+.quill-editor-wrapper .ql-toolbar button.ql-active {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.quill-editor-wrapper .ql-toolbar button:hover .ql-stroke,
+.quill-editor-wrapper .ql-toolbar button:focus .ql-stroke,
+.quill-editor-wrapper .ql-toolbar button.ql-active .ql-stroke {
+  stroke: white;
+}
+
+.quill-editor-wrapper .ql-toolbar button:hover .ql-fill,
+.quill-editor-wrapper .ql-toolbar button:focus .ql-fill,
+.quill-editor-wrapper .ql-toolbar button.ql-active .ql-fill {
+  fill: white;
+}
+
+.quill-editor-wrapper .ql-container.ql-snow {
+  background-color: #090F1B !important;
+  border: none !important;
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .quill-editor-wrapper .ql-container {
+    font-size: 1rem;
+  }
+}
+
+.quill-editor-wrapper .ql-editor {
+  color: white !important;
+  min-height: 150px;
+  padding: 0.75rem 1rem;
+  background-color: #090F1B !important;
+}
+
+.quill-editor-wrapper .ql-editor.ql-blank::before {
+  color: rgba(255, 255, 255, 0.4) !important;
+  font-style: normal;
+}
+
+.quill-editor-wrapper .ql-editor h1 {
+  font-size: 1.875rem;
+  font-weight: bold;
+  margin: 1rem 0 0.5rem 0;
+  color: white;
+}
+
+.quill-editor-wrapper .ql-editor h2 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 1rem 0 0.5rem 0;
+  color: white;
+}
+
+.quill-editor-wrapper .ql-editor h3 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin: 1rem 0 0.5rem 0;
+  color: white;
+}
+
+.quill-editor-wrapper .ql-editor p {
+  margin: 0.5rem 0;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+}
+
+.quill-editor-wrapper .ql-editor ul,
+.quill-editor-wrapper .ql-editor ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.quill-editor-wrapper .ql-editor li {
+  margin: 0.25rem 0;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.quill-editor-wrapper .ql-editor a {
+  color: #60a5fa;
+  text-decoration: underline;
+}
+
+.quill-editor-wrapper .ql-editor a:hover {
+  color: #93c5fd;
+}
+
+.quill-editor-wrapper .ql-editor strong {
+  font-weight: bold;
+  color: white;
+}
+
+.quill-editor-wrapper .ql-editor em {
+  font-style: italic;
+}
+
+.quill-editor-wrapper .ql-editor u {
+  text-decoration: underline;
+}
+
+/* Quill Picker Dropdown Styles */
+.quill-editor-wrapper .ql-picker-options {
+  background-color: #1A1A1A !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+  color: white !important;
+}
+
+.quill-editor-wrapper .ql-picker-options .ql-picker-item {
+  color: rgba(255, 255, 255, 0.7) !important;
+  background-color: transparent !important;
+}
+
+.quill-editor-wrapper .ql-picker-options .ql-picker-item:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+}
+
+.quill-editor-wrapper .ql-picker-options .ql-picker-item.ql-selected {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: white !important;
+}
+
+/* Более специфичные селекторы для всех выпадающих меню Quill */
+.ql-snow .ql-picker-options {
+  background-color: #1A1A1A !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+  color: white !important;
+}
+
+.ql-snow .ql-picker-options .ql-picker-item {
+  color: rgba(255, 255, 255, 0.7) !important;
+  background-color: transparent !important;
+}
+
+.ql-snow .ql-picker-options .ql-picker-item:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+}
+
+.ql-snow .ql-picker-options .ql-picker-item.ql-selected {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: white !important;
+}
+
+/* Стили для label в выпадающих меню */
+.ql-snow .ql-picker-label {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.quill-editor-wrapper .ql-toolbar .ql-picker-label {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
 /* Mobile optimizations */
 @layer utilities {
   .touch-manipulation {
