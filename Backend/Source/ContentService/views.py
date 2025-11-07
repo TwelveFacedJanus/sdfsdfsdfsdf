@@ -8,6 +8,16 @@ from .models import Post, Comment, PrivacyPolicy, PostRating
 from .serializers import PostSerializer, PostCreateSerializer, PostListSerializer, PostUpdateSerializer, CommentSerializer, CommentCreateSerializer, CommentListSerializer
 
 
+def check_email_verified(user):
+    """Проверяет, подтвержден ли email пользователя"""
+    if not user.is_email_verified:
+        return Response({
+            'error': 'Для выполнения этого действия необходимо подтвердить email',
+            'message': 'Пожалуйста, проверьте вашу почту и перейдите по ссылке для подтверждения email'
+        }, status=status.HTTP_403_FORBIDDEN)
+    return None
+
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_posts(request):
@@ -86,6 +96,11 @@ def create_post(request):
     Создать новый пост
     POST /api/content/posts/create/
     """
+    # Проверяем подтверждение email
+    email_check = check_email_verified(request.user)
+    if email_check:
+        return email_check
+    
     serializer = PostCreateSerializer(data=request.data, context={'request': request})
     
     if serializer.is_valid():
@@ -114,6 +129,11 @@ def update_post(request, post_id):
     Обновить пост
     PATCH /api/content/posts/{post_id}/update/
     """
+    # Проверяем подтверждение email
+    email_check = check_email_verified(request.user)
+    if email_check:
+        return email_check
+    
     post = get_object_or_404(Post, id=post_id, author=request.user)
     serializer = PostUpdateSerializer(post, data=request.data, partial=True)
     
@@ -143,6 +163,11 @@ def delete_post(request, post_id):
     Удалить пост
     DELETE /api/content/posts/{post_id}/delete/
     """
+    # Проверяем подтверждение email
+    email_check = check_email_verified(request.user)
+    if email_check:
+        return email_check
+    
     post = get_object_or_404(Post, id=post_id, author=request.user)
     
     try:
@@ -288,6 +313,11 @@ def create_comment(request):
     POST /api/content/comments/
     Body: {"text": "Текст комментария", "post_id": "uuid", "parent_id": "uuid" (optional)}
     """
+    # Проверяем подтверждение email
+    email_check = check_email_verified(request.user)
+    if email_check:
+        return email_check
+    
     text = request.data.get('text')
     post_id = request.data.get('post_id')
     parent_id = request.data.get('parent_id')
@@ -349,6 +379,11 @@ def update_delete_comment(request, comment_id):
     PUT /api/content/comments/{comment_id}/
     DELETE /api/content/comments/{comment_id}/
     """
+    # Проверяем подтверждение email
+    email_check = check_email_verified(request.user)
+    if email_check:
+        return email_check
+    
     try:
         comment = get_object_or_404(Comment, id=comment_id, is_deleted=False)
     except:
@@ -426,6 +461,11 @@ def rate_post(request, post_id):
     POST /api/content/posts/{post_id}/rate/
     Body: {"rating": 4.5}
     """
+    # Проверяем подтверждение email
+    email_check = check_email_verified(request.user)
+    if email_check:
+        return email_check
+    
     try:
         post = get_object_or_404(Post, id=post_id, is_published=True)
         

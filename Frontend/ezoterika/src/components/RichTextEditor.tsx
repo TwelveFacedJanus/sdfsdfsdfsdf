@@ -7,6 +7,14 @@ import 'react-quill-new/dist/quill.snow.css';
 // Динамический импорт ReactQuill для избежания SSR проблем
 const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
 
+// Динамический импорт Quill для работы с API
+let Quill: any = null;
+if (typeof window !== 'undefined') {
+  import('quill').then((module) => {
+    Quill = module.default;
+  });
+}
+
 interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
@@ -235,7 +243,7 @@ export default function RichTextEditor({
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [emojiPosition, setEmojiPosition] = useState({ top: 0, left: 0 });
   const emojiButtonRef = useRef<HTMLButtonElement>(null);
-  const quillRef = useRef<any>(null);
+  const editorWrapperRef = useRef<HTMLDivElement>(null);
 
   // Инициализация при монтировании
   useEffect(() => {
@@ -268,15 +276,62 @@ export default function RichTextEditor({
   };
 
   // Обработчик вставки эмодзи
-  const handleEmojiClick = (emoji: string) => {
-    if (quillRef.current) {
-      const quill = quillRef.current.getEditor();
-      const range = quill.getSelection(true);
-      if (range) {
-        quill.insertText(range.index, emoji, 'user');
-        quill.setSelection(range.index + emoji.length);
-      } else {
-        quill.insertText(quill.getLength(), emoji, 'user');
+  const handleEmojiClick = async (emoji: string) => {
+    if (editorWrapperRef.current && typeof window !== 'undefined') {
+      // Находим Quill редактор через DOM
+      const quillEditor = editorWrapperRef.current.querySelector('.ql-editor') as HTMLElement;
+      if (quillEditor) {
+        // Получаем Quill экземпляр
+        let quillInstance = null;
+        if (Quill) {
+          quillInstance = Quill.find(quillEditor);
+        } else {
+          // Пытаемся получить из глобального объекта
+          const globalQuill = (window as any).Quill;
+          if (globalQuill) {
+            quillInstance = globalQuill.find(quillEditor);
+          }
+        }
+        
+        if (quillInstance) {
+          // Используем Quill API
+          const range = quillInstance.getSelection(true);
+          if (range) {
+            quillInstance.insertText(range.index, emoji, 'user');
+            quillInstance.setSelection(range.index + emoji.length);
+          } else {
+            quillInstance.insertText(quillInstance.getLength(), emoji, 'user');
+          }
+        } else {
+          // Альтернативный способ: используем Selection API
+          const selection = window.getSelection();
+          if (selection && selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+            const textNode = document.createTextNode(emoji);
+            range.insertNode(textNode);
+            range.setStartAfter(textNode);
+            range.setEndAfter(textNode);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            // Триггерим изменение для обновления состояния
+            quillEditor.dispatchEvent(new Event('input', { bubbles: true }));
+          } else {
+            // Вставляем в конец
+            const textNode = document.createTextNode(emoji);
+            quillEditor.appendChild(textNode);
+            // Устанавливаем курсор после эмодзи
+            const range = document.createRange();
+            range.setStartAfter(textNode);
+            range.setEndAfter(textNode);
+            const sel = window.getSelection();
+            if (sel) {
+              sel.removeAllRanges();
+              sel.addRange(range);
+            }
+            quillEditor.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        }
       }
       setIsEmojiPickerOpen(false);
     }
@@ -341,9 +396,8 @@ export default function RichTextEditor({
       </div>
 
       {/* Quill Editor */}
-      <div className="quill-editor-wrapper relative">
+      <div ref={editorWrapperRef} className="quill-editor-wrapper relative">
         <ReactQuill
-          ref={quillRef}
           theme="snow"
           value={quillValue}
           onChange={handleChange}

@@ -12,6 +12,16 @@ from .models import UserFavourite
 from .serializers import UserFavouriteSerializer, UserFavouriteCreateSerializer, UserFavouriteListSerializer, SubscriberSerializer
 
 
+def check_email_verified(user):
+    """Проверяет, подтвержден ли email пользователя"""
+    if not user.is_email_verified:
+        return Response({
+            'error': 'Для выполнения этого действия необходимо подтвердить email',
+            'message': 'Пожалуйста, проверьте вашу почту и перейдите по ссылке для подтверждения email'
+        }, status=status.HTTP_403_FORBIDDEN)
+    return None
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_subscriptions(request):
@@ -51,6 +61,11 @@ def subscribe_to_user(request):
     Подписаться на пользователя
     POST /api/user-favourites/subscribe/
     """
+    # Проверяем подтверждение email
+    email_check = check_email_verified(request.user)
+    if email_check:
+        return email_check
+    
     serializer = UserFavouriteCreateSerializer(data=request.data, context={'request': request})
     
     if serializer.is_valid():

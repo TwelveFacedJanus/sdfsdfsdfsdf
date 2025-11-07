@@ -179,63 +179,57 @@ export default function SignInPage() {
 
     loadGoogleScript();
 
-    // Загружаем и инициализируем Facebook SDK
+    // Загружаем и инициализируем Facebook SDK согласно официальной инструкции
     const loadFacebookSDK = () => {
       // Проверяем, не загружен ли уже скрипт
-      if (document.querySelector('script[src*="connect.facebook.net"]')) {
-        // Скрипт уже загружается или загружен
+      if (document.getElementById('facebook-jssdk')) {
+        // Скрипт уже загружен
         if (window.FB) {
           initFacebookSDK();
-        } else {
-          // Ждем загрузки SDK
-          const checkFB = setInterval(() => {
-            if (window.FB) {
-              initFacebookSDK();
-              clearInterval(checkFB);
-            }
-          }, 100);
-          setTimeout(() => clearInterval(checkFB), 5000);
         }
         return;
       }
 
-      // Сохраняем старый обработчик, если он есть
-      const oldFbAsyncInit = window.fbAsyncInit;
-
-      window.fbAsyncInit = () => {
+      // Инициализация Facebook SDK согласно официальной инструкции
+      window.fbAsyncInit = function() {
         try {
           if (window.FB) {
-            initFacebookSDK();
+            window.FB.init({
+              appId: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '817819464543055',
+              cookie: true,
+              xfbml: true,
+              version: 'v18.0'
+            });
+            
+            // Логируем событие просмотра страницы
+            window.FB.AppEvents.logPageView();
+            
+            console.log('Facebook SDK initialized');
           }
         } catch (error) {
           console.error('Error in fbAsyncInit:', error);
         }
-        
-        // Вызываем старый обработчик, если он был
-        if (oldFbAsyncInit && typeof oldFbAsyncInit === 'function') {
-          oldFbAsyncInit();
-        }
       };
 
-      // Загружаем скрипт Facebook SDK
-      const script = document.createElement('script');
-      script.src = 'https://connect.facebook.net/ru_RU/sdk.js';
-      script.async = true;
-      script.defer = true;
-      script.id = 'facebook-jssdk';
-      script.onload = () => {
-        // Если fbAsyncInit не вызвался автоматически, вызываем вручную через небольшую задержку
-        setTimeout(() => {
-          if (window.fbAsyncInit && !window.FB) {
-            window.fbAsyncInit();
-          }
-        }, 100);
-      };
-      script.onerror = () => {
-        console.error('Failed to load Facebook SDK');
-        setError('Не удалось загрузить Facebook SDK. Проверьте подключение к интернету.');
-      };
-      document.body.appendChild(script);
+      // Загружаем скрипт Facebook SDK согласно официальной инструкции
+      (function(d, s, id) {
+        var js: HTMLScriptElement, fjs = d.getElementsByTagName(s)[0] as HTMLScriptElement;
+        if (d.getElementById(id)) { return; }
+        js = d.createElement(s) as HTMLScriptElement;
+        js.id = id;
+        js.src = "https://connect.facebook.net/ru_RU/sdk.js";
+        js.async = true;
+        js.defer = true;
+        js.onerror = () => {
+          console.error('Failed to load Facebook SDK');
+          setError('Не удалось загрузить Facebook SDK. Проверьте подключение к интернету.');
+        };
+        if (fjs && fjs.parentNode) {
+          fjs.parentNode.insertBefore(js, fjs);
+        } else {
+          document.body.appendChild(js);
+        }
+      }(document, 'script', 'facebook-jssdk'));
     };
 
     const initFacebookSDK = () => {
@@ -244,13 +238,22 @@ export default function SignInPage() {
           console.warn('Facebook SDK not available');
           return;
         }
+        // Если SDK уже инициализирован, не инициализируем повторно
+        if (window.FB.getAppId()) {
+          checkLoginState();
+          return;
+        }
         window.FB.init({
           appId: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '',
           cookie: true,
           xfbml: true,
           version: 'v18.0'
         });
+        window.FB.AppEvents.logPageView();
         console.log('Facebook SDK initialized');
+        
+        // Проверяем статус входа при загрузке страницы
+        checkLoginState();
       } catch (error) {
         console.error('Error initializing Facebook SDK:', error);
       }
@@ -272,10 +275,10 @@ export default function SignInPage() {
       }
 
       window.FB.login((response: any) => {
-        if (response.authResponse) {
-          const accessToken = response.authResponse.accessToken;
-          handleFacebookCallback(accessToken);
-        } else {
+        // Обрабатываем ответ через statusChangeCallback (согласно документации)
+        statusChangeCallback(response);
+        
+        if (!response.authResponse) {
           setError('Авторизация через Facebook была отменена');
           setIsFacebookLoading(false);
         }
@@ -289,6 +292,7 @@ export default function SignInPage() {
 
   const handleFacebookCallback = async (accessToken: string) => {
     try {
+      setIsFacebookLoading(true);
       const result = await facebookAuth({ access_token: accessToken });
       
       // Сохраняем токены в localStorage
@@ -310,6 +314,39 @@ export default function SignInPage() {
     } finally {
       setIsFacebookLoading(false);
     }
+  };
+
+  // Обработка изменения статуса входа (согласно документации Facebook)
+  const statusChangeCallback = (response: any) => {
+    if (!response) return;
+
+    // status может быть: 'connected', 'not_authorized', 'unknown'
+    if (response.status === 'connected') {
+      // Пользователь вошел в Facebook и в приложение
+      // authResponse содержит accessToken, expiresIn, signedRequest, userID
+      if (response.authResponse && response.authResponse.accessToken) {
+        const accessToken = response.authResponse.accessToken;
+        // Автоматически авторизуем пользователя, если он уже вошел
+        handleFacebookCallback(accessToken);
+      }
+    } else if (response.status === 'not_authorized') {
+      // Пользователь вошел в Facebook, но не в приложение
+      // Показываем кнопку входа
+      console.log('User logged into Facebook but not into the app');
+    } else {
+      // Пользователь не вошел в Facebook (status === 'unknown')
+      // Показываем кнопку входа
+      console.log('User not logged into Facebook');
+    }
+  };
+
+  // Функция для проверки статуса входа (согласно документации Facebook)
+  const checkLoginState = () => {
+    if (!window.FB) return;
+    
+    window.FB.getLoginStatus((response: any) => {
+      statusChangeCallback(response);
+    });
   };
 
   return (
